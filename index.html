@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SCORE PACK · 수행평가 카드깡</title>
+<title>과학 수행평가 점수확인!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
@@ -11,89 +11,110 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
-    --bg-0:#070a14; --bg-1:#0c1124; --bg-2:#131a33;
-    --ink:#eef2fb; --ink-dim:#9aa6c4; --line:rgba(255,255,255,.10);
+    --bg-0:#052E45; --bg-1:#0E5A81; --bg-2:#1E7BA8;
+    --ink:#ecf8fd; --ink-dim:#a6cfe0; --line:rgba(255,255,255,.15);
     --card-w:min(clamp(300px,46vh,480px),92vw); --card-h:clamp(430px,66vh,690px);
-    --gold:#FFD34E; --gold-2:#E8B23A;
-    --silver:#DCE4EF; --silver-2:#A9B6C9;
-    --rookie:#5EE6C8; --rookie-2:#3FB6E6;
+    --gold:#FFD46B; --gold-2:#E7B23A;
+    --silver:#E6F0F6; --silver-2:#AAC4D3;
+    --rookie:#FF8C6B; --rookie-2:#FF6F61;
     --legend-glow:#FFE7A0;
-    --accent:#5E9BFF;
+    --accent:#FF8A66; --accent-2:#FFB089;
+    --seafoam:#4FD1B0; --surf:#86D6EC; --sand:#FFD79A;
+    --panel:rgba(6,46,67,.55);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
   body{
     margin:0; font-family:Pretendard,system-ui,sans-serif; color:var(--ink);
-    background:
-      radial-gradient(1200px 700px at 80% -10%, #1b2752 0%, transparent 60%),
-      radial-gradient(900px 600px at 0% 110%, #16234a 0%, transparent 55%),
-      linear-gradient(180deg,var(--bg-1),var(--bg-0));
+    background:linear-gradient(180deg,
+      #8BD7EE 0%, #59B6D9 14%, #2E8FBE 32%, #15709C 52%, #0C547A 72%, #073E5C 88%, #052B41 100%);
     overflow:hidden; -webkit-font-smoothing:antialiased;
   }
+  /* sun rays from the surface */
   body::before{
-    content:""; position:fixed; inset:0; pointer-events:none; opacity:.34;
-    background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),
-      radial-gradient(1px 1px at 70% 60%,#cfe0ff,transparent),
-      radial-gradient(1px 1px at 40% 80%,#fff,transparent),
-      radial-gradient(1px 1px at 85% 20%,#bcd4ff,transparent),
-      radial-gradient(1.5px 1.5px at 55% 15%,#fff,transparent),
-      radial-gradient(1px 1px at 10% 65%,#e8f0ff,transparent),
-      radial-gradient(1px 1px at 92% 78%,#fff,transparent);
-    background-repeat:repeat; background-size:auto;
+    content:""; position:fixed; inset:-10% 0; z-index:-5; pointer-events:none; opacity:.45;
+    background:
+      repeating-linear-gradient(102deg, transparent 0 46px, rgba(255,255,255,.06) 46px 92px, transparent 92px 150px),
+      repeating-linear-gradient(94deg, transparent 0 70px, rgba(220,245,255,.05) 70px 120px, transparent 120px 200px);
+    transform-origin:top center; animation:raysway 14s ease-in-out infinite alternate;
   }
+  @keyframes raysway{from{transform:skewX(-5deg) translateX(-2%)}to{transform:skewX(5deg) translateX(2%)}}
   #fx{position:fixed; inset:0; pointer-events:none; z-index:60}
 
-  /* ---------- background photo + scrim ---------- */
+  /* rising bubbles */
+  .bubbles{position:fixed; inset:0; z-index:-4; pointer-events:none; overflow:hidden}
+  .bubble{position:absolute; bottom:-60px; border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.6), rgba(255,255,255,.10) 58%, transparent 72%);
+    border:1px solid rgba(255,255,255,.22); animation:rise linear infinite}
+  @keyframes rise{0%{transform:translate(0,0); opacity:0}
+    8%{opacity:.85} 88%{opacity:.7} 100%{transform:translate(26px,-112vh); opacity:0}}
+
+  /* seabed / coral reef */
+  .reef{position:fixed; left:0; right:0; bottom:0; width:100%; z-index:-3; pointer-events:none; line-height:0}
+  .reef svg{display:block; width:100%; height:clamp(96px,19vh,200px)}
+  .fish{position:fixed; z-index:-3; pointer-events:none; width:54px; opacity:.85}
+  .fish.f1{top:32%; animation:swim1 26s linear infinite}
+  .fish.f2{top:58%; width:38px; animation:swim2 34s linear infinite}
+  @keyframes swim1{0%{left:-8%; transform:scaleX(1)}100%{left:108%; transform:scaleX(1)}}
+  @keyframes swim2{0%{left:108%; transform:scaleX(-1)}100%{left:-8%; transform:scaleX(-1)}}
+
+  /* ---------- background photo + scrim (optional class photo over ocean) ---------- */
   .bg-photo{position:fixed; inset:0; z-index:-2; background-size:cover; background-position:center; background-repeat:no-repeat}
-  .bg-scrim{position:fixed; inset:0; z-index:-1;
-    background:linear-gradient(180deg, rgba(7,10,20,.48) 0%, rgba(7,10,20,.72) 55%, rgba(7,10,20,.90) 100%)}
+  .bg-scrim{position:fixed; inset:0; z-index:-1; display:none;
+    background:linear-gradient(180deg, rgba(4,36,55,.55) 0%, rgba(4,36,55,.72) 55%, rgba(3,30,45,.88) 100%)}
+  body.has-photo .bg-scrim{display:block}
 
   /* ---------- top bar ---------- */
   header{
     position:fixed; top:0; left:0; right:0; z-index:30;
     display:flex; align-items:center; gap:12px; padding:12px 18px;
-    background:linear-gradient(180deg,rgba(7,10,20,.85),rgba(7,10,20,0));
+    background:linear-gradient(180deg,rgba(4,32,49,.82),rgba(4,32,49,0));
     backdrop-filter:blur(6px);
   }
   .brand{font-family:"Black Han Sans"; font-size:20px; letter-spacing:.5px;
-    background:linear-gradient(90deg,#fff,#bcd4ff 60%,#FFD34E);
+    background:linear-gradient(90deg,#fff,#BFefff 55%,#FFD46B);
     -webkit-background-clip:text; background-clip:text; color:transparent; white-space:nowrap}
   .brand small{font-family:Jua; font-size:11px; color:var(--ink-dim); -webkit-text-fill-color:var(--ink-dim); margin-left:8px}
   .spacer{flex:1}
-  .pill{font-size:12px; color:var(--ink-dim); background:rgba(255,255,255,.05);
+  .pill{font-size:12px; color:var(--ink-dim); background:rgba(255,255,255,.08);
     border:1px solid var(--line); padding:5px 10px; border-radius:999px; white-space:nowrap}
   .pill b{color:var(--ink)}
   .btn{font-family:Pretendard; font-weight:700; font-size:13px; color:var(--ink);
-    background:rgba(255,255,255,.06); border:1px solid var(--line); padding:8px 12px;
+    background:rgba(255,255,255,.10); border:1px solid var(--line); padding:8px 12px;
     border-radius:10px; cursor:pointer; transition:.15s}
-  .btn:hover{background:rgba(255,255,255,.12)}
+  .btn:hover{background:rgba(255,255,255,.18)}
   .btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-  .btn.primary{background:linear-gradient(90deg,#5E9BFF,#6ad0ff); color:#06122a; border:none;
-    box-shadow:0 8px 24px rgba(94,155,255,.35)}
+  .btn.primary{background:linear-gradient(95deg,var(--accent),var(--accent-2)); color:#3a1405; border:none;
+    box-shadow:0 8px 24px rgba(255,138,102,.4)}
+  .btn.primary:hover{filter:brightness(1.05)}
   .btn.ghost{background:transparent}
 
   /* ---------- screens ---------- */
-  main{position:fixed; inset:0; display:flex; justify-content:center; overflow-y:auto; padding:78px 18px 30px}
+  main{position:fixed; inset:0; display:flex; justify-content:center; overflow-y:auto; padding:78px 18px 48px}
+  .credit{position:fixed; left:0; right:0; bottom:0; z-index:20; pointer-events:none; text-align:center;
+    padding:10px 12px; font-family:Pretendard; font-size:11.5px; color:var(--ink-dim); letter-spacing:.4px;
+    text-shadow:0 1px 3px rgba(0,20,30,.55)}
+  .credit b{color:var(--ink); font-weight:700}
   .screen{display:none; width:100%; max-width:980px; margin:auto; animation:fade .35s ease both}
   .screen.on{display:block}
   @keyframes fade{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
 
   /* ---------- upload ---------- */
   .hero{text-align:center; max-width:600px; margin:0 auto; padding:38px 30px;
-    background:rgba(9,13,26,.46); border:1px solid rgba(255,255,255,.09); border-radius:26px;
-    backdrop-filter:blur(10px); box-shadow:0 30px 80px rgba(0,0,0,.4)}
+    background:rgba(6,46,67,.55); border:1px solid rgba(255,255,255,.14); border-radius:26px;
+    backdrop-filter:blur(10px); box-shadow:0 30px 80px rgba(0,20,30,.45)}
   .hero h1{font-family:"Black Han Sans"; font-size:clamp(26px,5.2vw,42px); line-height:1.14; margin:0 0 16px;
-    background:linear-gradient(90deg,#fff,#FFE7A0 70%,#FFD34E); -webkit-background-clip:text; background-clip:text; color:transparent}
-  .hero h1 .accent{background:linear-gradient(90deg,#FFD34E,#FF9f45); -webkit-background-clip:text; background-clip:text; color:transparent}
-  .hero .farewell{font-family:Jua; font-size:clamp(15px,2.3vw,18px); line-height:1.8; color:#d8dff0; margin:0 0 14px; word-break:keep-all}
+    background:linear-gradient(90deg,#fff,#FFE7A0 70%,#FFD46B); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero h1 .accent{background:linear-gradient(90deg,#FFD46B,#FF9f45); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero .farewell{font-family:Jua; font-size:clamp(15px,2.3vw,18px); line-height:1.8; color:#dcecf3; margin:0 0 14px; word-break:keep-all}
   .hero .farewell.strong{color:#fff; font-size:clamp(16px,2.6vw,19.5px); margin:0 0 26px}
-  .hero .farewell b{color:var(--gold); font-weight:400}
+  .hero .farewell b{color:var(--sand); font-weight:400}
   .drop{
-    border:2px dashed rgba(120,150,220,.45); border-radius:22px;
-    background:rgba(20,28,55,.45); padding:40px 24px; cursor:pointer;
+    border:2px dashed rgba(143,217,236,.5); border-radius:22px;
+    background:rgba(12,70,98,.45); padding:40px 24px; cursor:pointer;
     transition:.18s; position:relative; overflow:hidden;
   }
-  .drop:hover,.drop.hot{border-color:#6ad0ff; background:rgba(28,40,80,.6); transform:translateY(-2px)}
+  .drop:hover,.drop.hot{border-color:var(--seafoam); background:rgba(20,90,120,.6); transform:translateY(-2px)}
   .drop .ic{font-size:46px; margin-bottom:10px}
   .drop .big{font-family:Jua; font-size:20px}
   .drop .sub{color:var(--ink-dim); font-size:13px; margin-top:6px}
@@ -101,14 +122,14 @@
   .note .lock{flex:0 0 auto}
 
   /* ---------- mapping ---------- */
-  .panel{background:rgba(16,23,46,.7); border:1px solid var(--line); border-radius:18px; padding:22px}
+  .panel{background:rgba(6,46,67,.62); border:1px solid var(--line); border-radius:18px; padding:22px}
   .panel h2{font-family:Jua; font-size:20px; margin:0 0 4px}
   .panel .lead{color:var(--ink-dim); font-size:13.5px; margin:0 0 18px}
   .grid-map{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
-  .field{background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+  .field{background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
   .field label{display:block; font-size:11.5px; color:var(--ink-dim); margin-bottom:6px; font-weight:700; letter-spacing:.3px}
   select,input[type=number]{width:100%; font-family:Pretendard; font-size:14px; color:var(--ink);
-    background:#0c1430; border:1px solid var(--line); border-radius:9px; padding:9px 10px; appearance:none}
+    background:#093247; border:1px solid var(--line); border-radius:9px; padding:9px 10px; appearance:none}
   select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px}
   .rowflex{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:16px}
   .bounds{display:flex; gap:8px; align-items:flex-end}
@@ -124,6 +145,13 @@
   .warn{margin-top:14px; padding:11px 13px; border-radius:11px; font-size:13px;
     background:rgba(255,140,90,.12); border:1px solid rgba(255,140,90,.3); color:#ffd0b0}
   .stat-mini{font-size:12px; color:var(--ink-dim); margin-top:8px}
+  .chips{display:flex; gap:5px; flex-wrap:wrap}
+  .chips button{font-family:Pretendard; font-size:12px; font-weight:700; color:var(--ink-dim);
+    background:rgba(255,255,255,.07); border:1px solid var(--line); border-radius:8px; padding:8px 10px; cursor:pointer; transition:.12s}
+  .chips button:hover{background:rgba(255,255,255,.14)}
+  .chips button.on{background:var(--accent); color:#3a1405; border-color:transparent}
+  .perf-readout{font-family:Jua; font-size:13.5px; color:#bff3e6; background:rgba(79,209,176,.16);
+    border:1px solid rgba(79,209,176,.38); border-radius:11px; padding:10px 14px; white-space:nowrap}
 
   /* ---------- selection grid ---------- */
   .sel-head{display:flex; align-items:baseline; gap:12px; margin-bottom:16px; flex-wrap:wrap}
@@ -131,24 +159,24 @@
   .sel-head .hint{color:var(--ink-dim); font-size:13px}
   .num-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(66px,1fr)); gap:10px}
   .num{position:relative; aspect-ratio:1/1; border-radius:14px; cursor:pointer;
-    border:1px solid var(--line); background:linear-gradient(180deg,#1a2552,#121a38);
+    border:1px solid var(--line); background:linear-gradient(180deg,#0f5d82,#0a3f5b);
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
     transition:.14s; font-family:Pretendard}
-  .num:hover{transform:translateY(-3px); border-color:#6ad0ff; box-shadow:0 10px 22px rgba(0,0,0,.35)}
+  .num:hover{transform:translateY(-3px); border-color:var(--seafoam); box-shadow:0 10px 22px rgba(0,20,30,.4)}
   .num:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
   .num .n{font-family:"Black Han Sans"; font-size:24px; line-height:1}
   .num .nm{font-size:11px; color:var(--ink-dim); max-width:58px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .num.done{opacity:.45}
-  .num.done::after{content:"✓"; position:absolute; top:5px; right:7px; font-size:13px; color:var(--rookie); font-weight:800}
+  .num.done::after{content:"✓"; position:absolute; top:5px; right:7px; font-size:13px; color:var(--seafoam); font-weight:800}
 
   /* ---------- confirm sheet ---------- */
   .confirm{position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:20px;
-    background:rgba(4,7,16,.66); backdrop-filter:blur(4px)}
+    background:rgba(3,24,37,.66); backdrop-filter:blur(4px)}
   .confirm.on{display:flex; animation:fade .2s ease both}
-  .confirm .box{background:linear-gradient(180deg,#16204a,#0e1530); border:1px solid var(--line);
+  .confirm .box{background:linear-gradient(180deg,#0d5377,#073047); border:1px solid var(--line);
     border-radius:20px; padding:26px; text-align:center; max-width:340px; width:100%}
   .confirm .who{font-family:"Black Han Sans"; font-size:30px; margin:6px 0 2px}
-  .confirm .num-lab{font-family:Jua; color:var(--accent); font-size:15px}
+  .confirm .num-lab{font-family:Jua; color:var(--seafoam); font-size:15px}
   .confirm .ask{color:var(--ink-dim); font-size:13.5px; margin:12px 0 20px}
   .confirm .row{display:flex; gap:10px}
   .confirm .row .btn{flex:1; padding:13px}
@@ -161,9 +189,9 @@
   .pack{
     width:230px; height:330px; border-radius:18px; cursor:pointer; position:relative;
     background:
-      linear-gradient(135deg,#243a8f 0%,#3a1f6e 50%,#7a2b5e 100%);
-    border:2px solid rgba(255,255,255,.25);
-    box-shadow:0 26px 60px rgba(0,0,0,.5), inset 0 0 60px rgba(255,255,255,.08);
+      linear-gradient(150deg,#16a0c4 0%,#1576a8 45%,#0d5a86 70%,#FF8C6B 130%);
+    border:2px solid rgba(255,255,255,.3);
+    box-shadow:0 26px 60px rgba(0,20,30,.5), inset 0 0 60px rgba(255,255,255,.1);
     display:flex; align-items:center; justify-content:center; overflow:hidden;
     animation:packfloat 3.2s ease-in-out infinite;
     transition:transform .15s;
@@ -253,9 +281,9 @@
   .card[data-tier="silver"] .badge{color:var(--silver)}
   .card[data-tier="silver"] .stars{color:var(--silver)}
 
-  .card[data-tier="rookie"]{background:linear-gradient(155deg,#063a3c,#04232f 60%,#062a44);
-    border:2px solid var(--rookie); color:#e6fbff}
-  .card[data-tier="rookie"] .holo{opacity:.18; background:linear-gradient(120deg,transparent,rgba(94,230,200,.7),transparent); animation:sheen 4.8s linear infinite}
+  .card[data-tier="rookie"]{background:linear-gradient(155deg,#7a2f24,#3a1410 58%,#10455e);
+    border:2px solid var(--rookie); color:#fff1ec}
+  .card[data-tier="rookie"] .holo{opacity:.22; background:linear-gradient(120deg,transparent,rgba(255,160,130,.7),transparent); animation:sheen 4.8s linear infinite}
   .card[data-tier="rookie"] .badge{color:var(--rookie)}
   .card[data-tier="rookie"] .stars{color:var(--rookie)}
 
@@ -282,7 +310,7 @@
   .sumrow.on{background:rgba(94,155,255,.12); border-color:rgba(94,155,255,.35)}
   .sumrow input[type=checkbox]{width:18px; height:18px; accent-color:var(--accent); flex:0 0 auto; cursor:pointer}
   .col-badge{font-family:"Black Han Sans"; font-size:12px; min-width:26px; text-align:center; color:var(--ink-dim); background:rgba(255,255,255,.06); border-radius:6px; padding:3px 0; flex:0 0 auto}
-  .lab-input{flex:1; min-width:80px; font-family:Pretendard; font-size:13px; color:var(--ink); background:#0c1430; border:1px solid var(--line); border-radius:8px; padding:7px 9px}
+  .lab-input{flex:1; min-width:80px; font-family:Pretendard; font-size:13px; color:var(--ink); background:#093247; border:1px solid var(--line); border-radius:8px; padding:7px 9px}
   .lab-input:focus{outline:2px solid var(--accent); outline-offset:1px}
   .sumrow .sample{font-size:11px; color:var(--ink-dim); flex:0 0 auto; white-space:nowrap}
 
@@ -299,11 +327,42 @@
 </head>
 <body>
 
+<div class="bubbles" id="bubbles"></div>
+<svg class="fish f1" viewBox="0 0 64 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M2 20c12-16 34-16 46-4 4 4 8 4 14 2-3 6-3 8 0 16-6-2-10-2-14 2C36 36 14 36 2 20Z" fill="#FFD79A"/>
+  <path d="M44 8c8-4 16-2 18 4-6 2-12 2-18-2Zm0 24c8 4 16 2 18-4-6-2-12-2-18 2Z" fill="#FF8C6B"/>
+  <circle cx="16" cy="18" r="2.4" fill="#073E5C"/>
+</svg>
+<svg class="fish f2" viewBox="0 0 64 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M2 20c12-16 34-16 46-4 4 4 8 4 14 2-3 6-3 8 0 16-6-2-10-2-14 2C36 36 14 36 2 20Z" fill="#9BE3D2"/>
+  <path d="M44 8c8-4 16-2 18 4-6 2-12 2-18-2Zm0 24c8 4 16 2 18-4-6-2-12-2-18 2Z" fill="#4FD1B0"/>
+  <circle cx="16" cy="18" r="2.2" fill="#073E5C"/>
+</svg>
+<div class="reef">
+  <svg viewBox="0 0 1440 220" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M0,150 C200,108 360,154 540,134 C740,112 900,162 1100,130 C1270,104 1370,142 1440,124 L1440,220 L0,220Z" fill="#0a3d57"/>
+    <g fill="none" stroke-linecap="round" opacity=".9">
+      <path d="M150,190 C132,160 168,144 146,116 C128,92 160,74 144,52" stroke="#2f9b7a" stroke-width="10"/>
+      <path d="M176,192 C162,168 190,156 174,132 C160,112 184,98 172,80" stroke="#39b489" stroke-width="8"/>
+      <path d="M1230,194 C1212,164 1248,148 1226,120 C1208,96 1240,78 1224,56" stroke="#2f9b7a" stroke-width="10"/>
+      <path d="M1262,196 C1248,172 1276,160 1260,136 C1246,116 1270,102 1258,84" stroke="#39b489" stroke-width="8"/>
+    </g>
+    <g stroke-linecap="round" fill="none">
+      <path d="M470,196 C470,168 452,158 452,138 M470,196 C470,170 492,162 494,140 M470,196 L470,150" stroke="#FF8C6B" stroke-width="13"/>
+      <path d="M520,198 C520,176 506,168 506,150 M520,198 C520,178 536,170 540,152" stroke="#FF6F9C" stroke-width="11"/>
+      <path d="M900,198 C900,170 882,160 882,140 M900,198 C900,172 922,164 926,142 M900,198 L900,154" stroke="#FF7E8A" stroke-width="13"/>
+      <path d="M952,198 C952,178 968,170 972,152 M952,198 C952,178 938,170 934,154" stroke="#FF9A6B" stroke-width="11"/>
+    </g>
+    <path d="M690,182 l9,16 18,2 -13,13 4,18 -18,-9 -18,9 4,-18 -13,-13 18,-2Z" fill="#FFB15C" opacity=".95"/>
+    <path d="M0,176 C260,146 460,184 700,164 C920,146 1100,188 1280,160 C1356,148 1404,170 1440,162 L1440,220 L0,220Z" fill="#072e44"/>
+  </svg>
+</div>
+
 <div class="bg-photo"></div>
 <div class="bg-scrim"></div>
 
 <header>
-  <div class="brand">SCORE&nbsp;PACK<small>수행평가 카드깡</small></div>
+  <div class="brand">과학 수행평가<small>점수확인!</small></div>
   <div class="spacer"></div>
   <span class="pill" id="counter" hidden>개봉 <b>0</b>/<b>0</b></span>
   <button class="btn ghost" id="btnReset" hidden>새 파일</button>
@@ -314,8 +373,8 @@
   <section class="screen on" id="screen-upload">
     <div class="hero">
       <h1>26년 해누리 2학년 과학!</h1>
-      <p class="farewell"> 과학 지식은 언젠가 휘발되겠죠^^ 이미 휘발되었을수도...? 종종 신기한 자연현상 보며 감탄했던 순간, 즐겁게 수업하려 노력하던 선생님을 흐릿하게라도 기억해주세요! 내일 기말고사 파이팅!</p>
-      <p class="farewell strong">점수는 점수일 뿐! 장담컨대 여러분은 2년만 지나도 이 점수를 까먹습니다 ㅋㅋㅋ 여러분 덕분에 정말 즐겁게 수업했어요. <b>토닥여줍시다!</b></p>
+      <p class="farewell">순간순간 신기한 자연현상 보며 감탄했던 순간, 여러분들 웃기려 노력하던 선생님을 흐릿하게라도 기억해주세요!</p>
+      <p class="farewell strong">점수는 점수일 뿐, 일희일비하지 말고 지난날의 나를 <b>토닥여줍시다!</b></p>
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="엑셀 파일 업로드">
         <div class="ic">📦</div>
         <div class="big">엑셀 파일을 여기에 끌어다 놓기</div>
@@ -350,11 +409,27 @@
         <div class="sumlist" id="sumList"></div>
       </div>
 
+      <div class="rowflex" style="align-items:flex-end">
+        <div class="field" style="flex:1; min-width:200px">
+          <label>지필(시험) 비중 — 이 비중을 뺀 점수로 등급을 매겨요</label>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <div class="chips" id="jipilChips">
+              <button type="button" data-v="0">0%</button>
+              <button type="button" data-v="20">20%</button>
+              <button type="button" data-v="30">30%</button>
+              <button type="button" data-v="40">40%</button>
+            </div>
+            <input type="number" id="jipil" value="30" min="0" max="90" step="5" style="width:88px">
+          </div>
+        </div>
+        <div class="perf-readout" id="perfReadout">수행 만점 70점</div>
+      </div>
+
       <div class="rowflex">
         <div class="bounds">
-          <div class="field"><label>전설 ≥</label><input type="number" id="b1" value="95"></div>
-          <div class="field"><label>골드 ≥</label><input type="number" id="b2" value="85"></div>
-          <div class="field"><label>실버 ≥</label><input type="number" id="b3" value="70"></div>
+          <div class="field"><label>전설 ≥ %</label><input type="number" id="b1" value="95"></div>
+          <div class="field"><label>골드 ≥ %</label><input type="number" id="b2" value="85"></div>
+          <div class="field"><label>실버 ≥ %</label><input type="number" id="b3" value="70"></div>
         </div>
         <div class="stat-mini" id="scaleInfo"></div>
       </div>
@@ -418,6 +493,7 @@
 
 <div class="flash" id="flash"></div>
 <canvas id="fx"></canvas>
+<div class="credit">제작 · 해누리중학교 <b>조승재</b></div>
 
 <!-- confirm sheet -->
 <div class="confirm" id="confirm">
@@ -434,7 +510,7 @@
 
 <script>
 /* =====================================================================
-   SCORE PACK — 수행평가 카드깡
+   과학 수행평가 점수확인!
    - 어떤 과목 엑셀이든: 번호→이름→점수항목→총점 구조를 자동 인식
    - 전부 브라우저 내 처리, 저장 없음
    ---------------------------------------------------------------------
@@ -459,47 +535,75 @@ const TIERS = [
 const MESSAGES = {
   legend:[
     "전설 등급 등장! 너의 노력이 빛나는 순간이야 ✨",
-    "이건 거의 SSR이야. 오늘 하루 좋은 일만 가득하길!",
-    "완벽에 가까운 결과! 정말 자랑스러워.",
-    "별 다섯 개짜리 실력! 이 기세 그대로 쭉 가자.",
-    "행운이 너를 따라다니는 중. 멋지다, 진짜!",
-    "최고 등급 획득! 너의 집중력이 만든 결과야.",
-    "이 카드, 도감에 박제각이다. 정말 잘했어!",
+    "깊은 바다 속 보물을 찾았다! 오늘 하루 행운이 가득하길 🪸",
+    "완벽에 가까운 결과! 정말정말 자랑스러워.",
+    "별 다섯 개 만점 실력! 이 기세 그대로 쭉 헤엄쳐 가자 🐳",
+    "이건 거의 SSR이야. 도감에 박제 확정!",
+    "파도를 가르는 돌고래처럼 멋졌어. 최고야!",
+    "행운이 너를 따라다니는 중. 진심으로 멋지다!",
+    "노력의 깊이가 점수에 그대로 담겼어. 대단해!",
+    "반짝이는 진주 같은 결과! 빛나는 너를 응원해.",
+    "이 정도면 바다의 왕! 오늘도 좋은 일만 가득하길.",
+    "끝까지 집중한 네가 만든 결과야. 자랑스럽다!",
+    "일 년 동안 정말 잘 헤엄쳐 왔어. 멋진 마무리야 💙",
+    "만점에 가까운 카드, 흔치 않아. 행운까지 가득!",
+    "너의 호기심이 여기까지 데려왔어. 최고의 한 해였어!",
   ],
   gold:[
-    "골드 카드 획득! 탄탄한 실력이 느껴져 👏",
+    "골드 카드 획득! 탄탄한 실력이 느껴져 🐬",
     "조금만 더 가면 전설이야. 충분히 멋졌어!",
-    "꾸준함이 빛나는 점수. 행운이 함께하길!",
-    "안정적인 골드! 다음엔 더 높이 날아보자.",
-    "잘 다듬어진 보석 같은 결과야. 자랑스러워!",
-    "이 정도면 주전 확정. 오늘도 좋은 하루 보내!",
-    "노력의 무게가 그대로 점수에 담겼네. 굿!",
+    "꾸준함이 빛나는 점수. 오늘도 행운이 함께하길!",
+    "안정적인 골드! 다음엔 더 깊이 잠수해 보자.",
+    "잘 다듬어진 산호 같은 결과야. 자랑스러워!",
+    "이 정도면 주전 확정. 오늘 하루도 좋은 일만!",
+    "노력의 무게가 그대로 담겼네. 정말 잘했어!",
+    "파도를 잘 탔어. 흐름을 아는 멋진 실력이야 🌊",
+    "빛나는 한 해였어. 골드가 잘 어울린다!",
+    "거의 다 왔어! 한 뼘만 더 가면 전설이야.",
+    "든든하다, 정말. 행운까지 데려가길 바라!",
+    "꾸준히 헤엄쳐 온 게 보여. 자랑스러워!",
+    "균형 잡힌 멋진 점수. 너답게 잘했어!",
+    "올 한 해 성실했던 네가 만든 카드야. 굿 🐠",
   ],
   silver:[
-    "실버 카드 획득! 가능성이 가득한 점수야 ✨",
+    "실버 카드 획득! 가능성이 가득한 점수야 🐢",
     "기본기가 탄탄해. 조금만 더 가면 골드각!",
-    "여기서부터가 성장 구간이야. 응원할게!",
-    "오늘의 행운을 모아 다음 도전으로 가자.",
-    "충분히 잘하고 있어. 너의 속도로 가면 돼.",
+    "여기서부터가 성장 구간이야. 끝까지 응원할게!",
+    "오늘의 행운을 모아 다음 파도로 가자 🌊",
+    "충분히 잘하고 있어. 너의 속도로 헤엄치면 돼.",
     "한 걸음씩, 분명히 올라가고 있어. 멋져!",
     "이 카드엔 성장 잠재력이 숨어 있어. 화이팅!",
+    "바다거북처럼 천천히, 그러나 멀리 가는 중이야.",
+    "잘 버텼고 잘 해냈어. 다음이 더 기대돼!",
+    "너의 페이스를 믿어. 오늘도 좋은 하루 보내!",
+    "단단해지고 있는 게 느껴져. 응원할게!",
+    "작은 파도도 결국 바위를 깎아. 꾸준함이 답이야.",
+    "여기까지 온 것도 멋진 일이야. 자랑스러워!",
+    "한 해 동안 고생 많았어. 다음 학년도 파이팅 💙",
   ],
   rookie:[
     "루키 카드 등장! 모든 전설은 여기서 시작해 🌱",
     "끝이 아니라 출발선이야. 다음엔 더 빛날 거야!",
     "오늘의 도전만으로도 충분히 용감했어. 응원해!",
-    "작은 한 걸음이 큰 성장을 만들어. 같이 가보자.",
+    "작은 한 걸음이 큰 파도를 만들어. 같이 가보자 🌊",
     "행운은 준비된 사람에게 와. 너의 차례가 올 거야.",
     "포기하지 않은 네가 이미 멋져. 다음을 기대할게!",
-    "성장할 일만 남았다는 뜻! 너를 믿어.",
+    "성장할 일만 남았다는 뜻이야! 너를 믿어.",
+    "깊은 바다도 처음엔 얕은 물에서 시작해. 천천히 가자.",
+    "점수는 점수일 뿐. 오늘의 너를 토닥여 주자 💙",
+    "작은 물고기도 언젠가 큰 바다로 나가. 응원해!",
+    "다시 헤엄치면 돼. 너의 속도로 충분해.",
+    "한 해 동안 함께해 줘서 고마워. 다음에도 화이팅!",
+    "넘어져도 괜찮아. 일어서는 네가 진짜 멋져.",
+    "시작이 반이야. 남은 반은 분명 더 좋아질 거야!",
   ],
 };
 
 const CONFETTI = {
-  legend:['#FF5E7E','#FFD34E','#5EE6C8','#5E9BFF','#C77DFF','#FF9F45'],
-  gold:['#FFD34E','#FFE08A','#E8B23A','#FFF3C4'],
-  silver:['#EEF3F8','#C7D0DB','#9FB0C3','#FFFFFF'],
-  rookie:['#5EE6C8','#3FB6E6','#5E9BFF','#BFF7EA'],
+  legend:['#FFD46B','#FF8C6B','#4FD1B0','#86D6EC','#FFE7A0','#FF6F9C'],
+  gold:['#FFD46B','#FFE08A','#E7B23A','#FFF3C4','#86D6EC'],
+  silver:['#EAF6FB','#C7D0DB','#9FB0C3','#FFFFFF','#86D6EC'],
+  rookie:['#FF8C6B','#FFB089','#4FD1B0','#86D6EC','#FFD79A'],
 };
 
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -639,10 +743,14 @@ function buildStudents(){
   }
 }
 
+// 수행 만점 = 100 − 지필 비중 (지필을 뺀 점수가 등급 기준)
+function perfMax(){ const j=toNum(el('jipil').value); const m=100-(j===null?0:j); return m>0?m:1; }
 function tierOf(total){
+  const pm=perfMax();
+  const pct = pm>0 ? (total/pm*100) : 0;
   const b1=toNum(el('b1').value)??95, b2=toNum(el('b2').value)??85, b3=toNum(el('b3').value)??70;
   const cuts=[b1,b2,b3];
-  for(let i=0;i<3;i++){ if(total>=cuts[i]) return TIERS[i]; }
+  for(let i=0;i<3;i++){ if(pct>=cuts[i]) return TIERS[i]; }
   return TIERS[3];
 }
 
@@ -683,12 +791,13 @@ function loadSheet(i){
   map={num:d.numCol, name:d.nameCol};
   dataRange=[d.ds,d.de];
   scoreCols=d.numeric.slice();
-  // 합산 후보: 숫자 열들. 기본 체크 = 분류/식별/이미합산 라벨이 아닌 것.
+  // 합산 후보: 숫자 열들. 기본 체크 = 이름표가 있는 평가항목(분류/식별 라벨 제외).
+  // 이름 없는 열(예: 소계의 구성요소)은 기본 해제 — 필요하면 체크해서 더할 수 있음.
   sumCols=d.numeric.map(c=>{
     const labeled=hasHeaderText(aoa,c,d.ds);
     const lab=labeled?buildLabel(aoa,c,d.ds):'';
     const excluded=EXCLUDE_SUM.includes((lab||'').trim());
-    return { col:c, label:lab, checked:!excluded };
+    return { col:c, label:lab, checked: labeled && !excluded };
   });
   fillColumnSelects(d);
   renderSumList();
@@ -735,13 +844,21 @@ function refreshMapping(){
   renderPreview();
   const checked=sumCols.filter(s=>s.checked).length;
   el('sumChip').textContent = checked ? `${checked}개 항목 합산` : '선택 없음';
+  const pm=perfMax();
+  el('perfReadout').textContent = `수행 만점 ${pm}점`;
+  syncJipilChips();
   const totals=students.map(s=>s.total).filter(v=>!isNaN(v));
   const mn=totals.length?Math.min(...totals):0, mx=totals.length?Math.max(...totals):0;
-  el('scaleInfo').textContent = totals.length ? `총점 범위 ${mn} ~ ${mx} · 학생 ${students.length}명` : '';
+  el('scaleInfo').textContent = totals.length ? `합산 점수 ${mn} ~ ${mx} · 학생 ${students.length}명` : '';
   let warn='';
-  if(!checked) warn='합산할 항목을 1개 이상 체크해 주세요. (체크된 점수들을 더한 값이 총점이 됩니다)';
+  if(!checked) warn='합산할 항목을 1개 이상 체크해 주세요. (체크한 점수들을 더한 값이 총점이 됩니다)';
   else if(!students.length) warn='학생 데이터를 못 찾았어요. 번호/이름 열을 확인해 주세요.';
+  else if(mx>pm+0.5) warn=`합산 최고점(${mx}점)이 수행 만점(${pm}점)보다 높아요. 중복으로 더해진 항목이 있는지 확인하세요 (예: 소계 열이 함께 체크됨).`;
   el('mapWarn').innerHTML = warn?`<div class="warn">⚠️ ${warn}</div>`:'';
+}
+function syncJipilChips(){
+  const v=String(parseInt(el('jipil').value,10));
+  el('jipilChips').querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
 }
 
 function renderPreview(){
@@ -832,7 +949,7 @@ function revealCard(tier){
 
   const showNum=el('togShowNum').checked;
   const sc=el('cScore');
-  if(showNum){ sc.classList.remove('hidden-num'); sc.innerHTML=`${Math.round(s.total*10)/10}<small>점</small>`; }
+  if(showNum){ sc.classList.remove('hidden-num'); sc.innerHTML=`${round1(s.total)}<small> / ${perfMax()}점</small>`; }
   else { sc.classList.add('hidden-num'); sc.textContent='✦'; }
 
   // stars
@@ -965,7 +1082,9 @@ el('drop').addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) l
 
 el('selSheet') && (el('selSheet').onchange=e=>loadSheet(parseInt(e.target.value,10)));
 ['selNum','selName'].forEach(id=>el(id).onchange=refreshMapping);
-['b1','b2','b3'].forEach(id=>el(id).oninput=()=>{ renderPreview(); });
+['b1','b2','b3'].forEach(id=>el(id).oninput=refreshMapping);
+el('jipil').oninput=refreshMapping;
+el('jipilChips').querySelectorAll('button').forEach(b=>b.onclick=()=>{ el('jipil').value=b.dataset.v; refreshMapping(); });
 
 el('btnBack').onclick=()=>show('screen-upload');
 el('btnStart').onclick=()=>{ if(!students.length){ alert('학생 데이터를 찾지 못했어요. 번호/이름 열을 확인해 주세요.'); return; } opened=new Set(); renderGrid(); show('screen-select'); };
@@ -980,14 +1099,30 @@ el('btnNext').onclick=nextStudent;
 
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeConfirm(); } });
 
-/* apply background photo (if missing, the gradient/starfield shows instead) */
+/* apply background photo (if missing, the ocean scene shows instead) */
 (function(){
   if(!BG_IMAGE) return;
   const layer=document.querySelector('.bg-photo');
   const probe=new Image();
-  probe.onload=()=>{ layer.style.backgroundImage="url('"+BG_IMAGE+"')"; };
-  probe.onerror=()=>{ /* keep default background */ };
+  probe.onload=()=>{ layer.style.backgroundImage="url('"+BG_IMAGE+"')"; document.body.classList.add('has-photo'); };
+  probe.onerror=()=>{ /* keep ocean scene */ };
   probe.src=BG_IMAGE;
+})();
+
+/* rising bubbles */
+(function(){
+  if(REDUCED) return;
+  const box=el('bubbles'); if(!box) return;
+  const N=18;
+  for(let i=0;i<N;i++){
+    const b=document.createElement('div'); b.className='bubble';
+    const size=6+Math.random()*18;
+    b.style.width=size+'px'; b.style.height=size+'px';
+    b.style.left=(Math.random()*100)+'%';
+    b.style.animationDuration=(8+Math.random()*11)+'s';
+    b.style.animationDelay=(-Math.random()*16)+'s';
+    box.appendChild(b);
+  }
 })();
 </script>
 </body>
