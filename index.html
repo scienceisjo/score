@@ -13,7 +13,7 @@
   :root{
     --bg-0:#070a14; --bg-1:#0c1124; --bg-2:#131a33;
     --ink:#eef2fb; --ink-dim:#9aa6c4; --line:rgba(255,255,255,.10);
-    --card-w:300px; --card-h:430px;
+    --card-w:min(clamp(300px,46vh,480px),92vw); --card-h:clamp(430px,66vh,690px);
     --gold:#FFD34E; --gold-2:#E8B23A;
     --silver:#DCE4EF; --silver-2:#A9B6C9;
     --rookie:#5EE6C8; --rookie-2:#3FB6E6;
@@ -73,8 +73,8 @@
   .btn.ghost{background:transparent}
 
   /* ---------- screens ---------- */
-  main{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:78px 18px 24px}
-  .screen{display:none; width:100%; max-width:980px; animation:fade .35s ease both}
+  main{position:fixed; inset:0; display:flex; justify-content:center; overflow-y:auto; padding:78px 18px 30px}
+  .screen{display:none; width:100%; max-width:980px; margin:auto; animation:fade .35s ease both}
   .screen.on{display:block}
   @keyframes fade{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
 
@@ -207,7 +207,7 @@
   }
   @keyframes cardin{0%{opacity:0; transform:perspective(1100px) translateY(40px) rotateX(25deg) scale(.85)}
     100%{opacity:1; transform:perspective(1100px) translateY(0) rotateX(0) scale(1)}}
-  .card .face{position:absolute; inset:0; padding:20px; display:flex; flex-direction:column}
+  .card .face{position:absolute; inset:0; padding:clamp(18px,2.6vh,26px); display:flex; flex-direction:column}
   .card .holo{position:absolute; inset:0; pointer-events:none; mix-blend-mode:color-dodge; opacity:.0}
   .card .glare{position:absolute; top:-50%; left:-30%; width:50%; height:200%;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent); transform:rotate(18deg);
@@ -215,20 +215,20 @@
   @keyframes cardglare{0%{left:-40%}100%{left:130%}}
 
   .card .rk{display:flex; align-items:center; justify-content:space-between}
-  .card .rk .badge{font-family:"Black Han Sans"; font-size:22px; letter-spacing:1px}
-  .card .rk .no{font-family:"Black Han Sans"; font-size:18px; background:rgba(0,0,0,.25);
-    padding:3px 10px; border-radius:999px}
-  .card .stars{font-size:22px; letter-spacing:2px; margin:6px 0 0; height:26px}
+  .card .rk .badge{font-family:"Black Han Sans"; font-size:clamp(20px,3.1vh,28px); letter-spacing:1px}
+  .card .rk .no{font-family:"Black Han Sans"; font-size:clamp(15px,2.3vh,20px); background:rgba(0,0,0,.25);
+    padding:3px 12px; border-radius:999px}
+  .card .stars{font-size:clamp(20px,3.1vh,30px); letter-spacing:3px; margin:8px 0 0; min-height:30px}
   .card .stars i{font-style:normal; display:inline-block; opacity:0; transform:scale(0)}
   .card .stars i.pop{animation:starpop .3s ease forwards}
   @keyframes starpop{0%{opacity:0; transform:scale(0) rotate(-40deg)}70%{transform:scale(1.4) rotate(6deg)}100%{opacity:1; transform:scale(1) rotate(0)}}
   .card .mid{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center}
-  .card .score{font-family:"Black Han Sans"; font-size:96px; line-height:.9; text-shadow:0 6px 20px rgba(0,0,0,.35)}
-  .card .score small{font-size:26px; opacity:.7}
-  .card .score.hidden-num{font-size:54px}
-  .card .name{font-family:"Black Han Sans"; font-size:32px; margin-top:6px}
-  .card .foot{font-family:Jua; font-size:14.5px; line-height:1.45; text-align:center;
-    background:rgba(0,0,0,.22); border-radius:12px; padding:11px 12px; min-height:62px;
+  .card .score{font-family:"Black Han Sans"; font-size:clamp(76px,13vh,128px); line-height:.9; text-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .card .score small{font-size:clamp(22px,3.2vh,30px); opacity:.7}
+  .card .score.hidden-num{font-size:clamp(54px,8vh,80px)}
+  .card .name{font-family:"Black Han Sans"; font-size:clamp(26px,4.6vh,42px); margin-top:8px}
+  .card .foot{font-family:Jua; font-size:clamp(14px,2.1vh,18px); line-height:1.5; text-align:center;
+    background:rgba(0,0,0,.22); border-radius:12px; padding:clamp(11px,1.6vh,16px); min-height:62px;
     display:flex; align-items:center; justify-content:center}
 
   .card[data-tier="legend"]{background:linear-gradient(150deg,#2a1b00,#1a0f2e 55%,#001a22);
@@ -259,14 +259,32 @@
   .card[data-tier="rookie"] .badge{color:var(--rookie)}
   .card[data-tier="rookie"] .stars{color:var(--rookie)}
 
-  .card-actions{display:flex; gap:10px; margin-top:26px; flex-wrap:wrap; justify-content:center}
-  .detail{margin-top:14px; max-width:var(--card-w); width:100%}
-  .detail summary{font-family:Jua; font-size:13px; color:var(--ink-dim); cursor:pointer; text-align:center; list-style:none}
-  .detail summary::-webkit-details-marker{display:none}
-  .detail .dbox{margin-top:10px; background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:12px; padding:12px; font-size:12.5px}
-  .detail .drow{display:flex; justify-content:space-between; padding:4px 2px; border-bottom:1px solid rgba(255,255,255,.06)}
-  .detail .drow:last-child{border:none}
-  .detail .drow span:last-child{font-family:"Black Han Sans"}
+  /* card stage: big card + side panel */
+  .card-stage{display:flex; gap:32px; align-items:center; justify-content:center; flex-wrap:wrap; width:100%}
+  .side{display:flex; flex-direction:column; gap:16px; width:min(330px,92vw)}
+  .detail-panel{background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:16px; padding:16px 18px}
+  .detail-panel .dh{font-family:Jua; font-size:14px; color:var(--ink-dim); margin-bottom:6px}
+  .detail-panel .drow{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 2px; border-bottom:1px solid rgba(255,255,255,.06); font-size:14px}
+  .detail-panel .drow:last-child{border:none}
+  .detail-panel .drow span:first-child{color:var(--ink-dim)}
+  .detail-panel .drow span:last-child{font-family:"Black Han Sans"; font-size:17px; color:var(--ink)}
+  .detail-panel .drow.total{margin-top:6px; padding-top:12px; border-top:2px solid rgba(255,255,255,.16); border-bottom:none}
+  .detail-panel .drow.total span:first-child{font-family:Jua; color:var(--gold)}
+  .detail-panel .drow.total span:last-child{color:var(--gold); font-size:23px}
+  .btn.big{padding:15px; font-size:15px}
+
+  /* sum-column picker (총점 합산 항목) */
+  .sumbox{margin-top:16px}
+  .sumbox .sublabel{font-size:11.5px; color:var(--ink-dim); font-weight:700; letter-spacing:.3px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center}
+  .sumbox .sublabel .chip{font-family:"Black Han Sans"; font-size:13px; color:var(--gold)}
+  .sumlist{display:flex; flex-direction:column; gap:7px; max-height:240px; overflow:auto; padding:6px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03)}
+  .sumrow{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:rgba(255,255,255,.03); border:1px solid transparent; transition:.12s}
+  .sumrow.on{background:rgba(94,155,255,.12); border-color:rgba(94,155,255,.35)}
+  .sumrow input[type=checkbox]{width:18px; height:18px; accent-color:var(--accent); flex:0 0 auto; cursor:pointer}
+  .col-badge{font-family:"Black Han Sans"; font-size:12px; min-width:26px; text-align:center; color:var(--ink-dim); background:rgba(255,255,255,.06); border-radius:6px; padding:3px 0; flex:0 0 auto}
+  .lab-input{flex:1; min-width:80px; font-family:Pretendard; font-size:13px; color:var(--ink); background:#0c1430; border:1px solid var(--line); border-radius:8px; padding:7px 9px}
+  .lab-input:focus{outline:2px solid var(--accent); outline-offset:1px}
+  .sumrow .sample{font-size:11px; color:var(--ink-dim); flex:0 0 auto; white-space:nowrap}
 
   @media (max-width:640px){
     .grid-map{grid-template-columns:1fr}
@@ -322,10 +340,14 @@
         <select id="selSheet"></select>
       </div>
 
-      <div class="grid-map">
+      <div class="grid-map" style="grid-template-columns:repeat(2,1fr)">
         <div class="field"><label>번호 열</label><select id="selNum"></select></div>
         <div class="field"><label>이름 열</label><select id="selName"></select></div>
-        <div class="field"><label>총점 열</label><select id="selTotal"></select></div>
+      </div>
+
+      <div class="sumbox">
+        <div class="sublabel"><span>총점에 합산할 항목 (체크한 점수들을 모두 더해 총점이 됩니다)</span><span class="chip" id="sumChip"></span></div>
+        <div class="sumlist" id="sumList"></div>
       </div>
 
       <div class="rowflex">
@@ -372,25 +394,24 @@
 
   <!-- 5. CARD -->
   <section class="screen" id="screen-card">
-    <div class="card" id="card" data-tier="rookie">
-      <div class="holo"></div>
-      <div class="glare"></div>
-      <div class="face">
-        <div class="rk"><span class="badge" id="cBadge">ROOKIE</span><span class="no" id="cNo">#1</span></div>
-        <div class="stars" id="cStars"></div>
-        <div class="mid">
-          <div class="score" id="cScore">0</div>
-          <div class="name" id="cName">이름</div>
+    <div class="card-stage">
+      <div class="card" id="card" data-tier="rookie">
+        <div class="holo"></div>
+        <div class="glare"></div>
+        <div class="face">
+          <div class="rk"><span class="badge" id="cBadge">ROOKIE</span><span class="no" id="cNo">#1</span></div>
+          <div class="stars" id="cStars"></div>
+          <div class="mid">
+            <div class="score" id="cScore">0</div>
+            <div class="name" id="cName">이름</div>
+          </div>
+          <div class="foot" id="cMsg">메시지</div>
         </div>
-        <div class="foot" id="cMsg">메시지</div>
       </div>
-    </div>
-    <details class="detail" id="cDetail">
-      <summary>세부 점수 보기</summary>
-      <div class="dbox" id="cDetailBox"></div>
-    </details>
-    <div class="card-actions">
-      <button class="btn primary" id="btnNext">다음 학생 →</button>
+      <div class="side">
+        <div class="detail-panel" id="cDetailBox"></div>
+        <button class="btn primary big" id="btnNext">다음 학생 →</button>
+      </div>
     </div>
   </section>
 </main>
@@ -484,8 +505,10 @@ const CONFETTI = {
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- state ---------- */
-let WB=null, SHEETS=[], aoa=[], map={num:0,name:1,total:2}, scoreCols=[], dataRange=[0,0];
+let WB=null, SHEETS=[], aoa=[], map={num:0,name:1}, scoreCols=[], sumCols=[], dataRange=[0,0];
 let students=[], opened=new Set(), current=null, busy=false;
+// 기본 합산에서 빼는 라벨(정확히 일치할 때만): 분류/식별/이미 합쳐진 값
+const EXCLUDE_SUM=['과목','반','번호','성명','이름','학년','순번','연번','구분','학번','출석','학교','평균','표준편차','합계','총점','총계','계','환산점수','총합','석차','등급'];
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s);
@@ -503,13 +526,25 @@ function buildLabel(a,c,ds){
     const s=cellStr(a,r,c);
     if(!s) continue;
     if(/^\d+(\.\d+)?%?$/.test(s)) continue;
+    if(/만점|배점/.test(s)) continue;
     if(STRUCT_WORDS.includes(s)) continue;
     if(!parts.includes(s)) parts.push(s);
   }
   let label=parts.join(' ').trim();
-  if(label.length>22) label=label.slice(0,22)+'…';
+  if(label.length>24) label=label.slice(0,24)+'…';
   return label || (colLetter(c)+'열');
 }
+// true if column has any non-numeric header text above data start
+function hasHeaderText(a,c,ds){
+  for(let r=0;r<ds;r++){
+    const s=cellStr(a,r,c);
+    if(s && !/^\d+(\.\d+)?%?$/.test(s) && !/만점|배점/.test(s) && !STRUCT_WORDS.includes(s)) return true;
+  }
+  return false;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function round1(n){ return Math.round(n*10)/10; }
+function firstSample(c){ const [ds]=dataRange; for(let r=ds;r<ds+5;r++){ const s=cellStr(aoa,r,c); if(s!=='') return s.slice(0,6); } return '-'; }
 
 /* ---------- detection ---------- */
 function detect(a){
@@ -584,18 +619,23 @@ function detect(a){
 /* ---------- build student rows from current map ---------- */
 function buildStudents(){
   const [ds,de]=dataRange;
+  const cols=sumCols.filter(s=>s.checked);
   students=[];
   for(let r=ds;r<=de;r++){
     const num=toInt(cellAt(aoa,r,map.num));
     const name=cellStr(aoa,r,map.name);
     if(num===null && !name) continue;
-    let total=toNum(cellAt(aoa,r,map.total));
-    if(total===null){ // compute from score cols
-      let s=0,any=false; for(const c of scoreCols){ const v=toNum(cellAt(aoa,r,c)); if(v!==null){s+=v;any=true;} }
-      total=any?s:0;
+    let total=0; const groups={}; const order=[];
+    for(const s of cols){
+      const v=toNum(cellAt(aoa,r,s.col));
+      const val=v===null?0:v;
+      total+=val;
+      const lab=(s.label && s.label.trim()) ? s.label.trim() : (colLetter(s.col)+'열');
+      if(!(lab in groups)){ groups[lab]=0; order.push(lab); }
+      groups[lab]+=val;
     }
-    const detail=scoreCols.filter(c=>c!==map.total).map(c=>({label:buildLabel(aoa,c,ds), val:toNum(cellAt(aoa,r,c))}));
-    students.push({ num: num===null? (students.length+1):num, name:name||'-', total, detail });
+    const detail=order.map(l=>({label:l, val:round1(groups[l])}));
+    students.push({ num: num===null?(students.length+1):num, name:name||'-', total:round1(total), detail });
   }
 }
 
@@ -640,11 +680,38 @@ function loadSheet(i){
   const ws=WB.Sheets[SHEETS[i]];
   aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
   const d=detect(aoa);
-  map={num:d.numCol, name:d.nameCol, total:d.totalCol};
+  map={num:d.numCol, name:d.nameCol};
   dataRange=[d.ds,d.de];
   scoreCols=d.numeric.slice();
+  // 합산 후보: 숫자 열들. 기본 체크 = 분류/식별/이미합산 라벨이 아닌 것.
+  sumCols=d.numeric.map(c=>{
+    const labeled=hasHeaderText(aoa,c,d.ds);
+    const lab=labeled?buildLabel(aoa,c,d.ds):'';
+    const excluded=EXCLUDE_SUM.includes((lab||'').trim());
+    return { col:c, label:lab, checked:!excluded };
+  });
   fillColumnSelects(d);
+  renderSumList();
   refreshMapping();
+}
+
+function renderSumList(){
+  const list=el('sumList');
+  list.innerHTML=sumCols.map((s,i)=>{
+    return `<div class="sumrow${s.checked?' on':''}">
+      <input type="checkbox" data-i="${i}" ${s.checked?'checked':''} aria-label="합산 포함">
+      <span class="col-badge">${colLetter(s.col)}</span>
+      <input type="text" class="lab-input" data-i="${i}" value="${escapeHtml(s.label)}" placeholder="이름 없음 (예: 혼합물 분리)">
+      <span class="sample">예: ${escapeHtml(firstSample(s.col))}</span>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.onchange=e=>{ const i=+e.target.dataset.i; sumCols[i].checked=e.target.checked;
+      e.target.closest('.sumrow').classList.toggle('on',e.target.checked); refreshMapping(); };
+  });
+  list.querySelectorAll('.lab-input').forEach(inp=>{
+    inp.oninput=e=>{ const i=+e.target.dataset.i; sumCols[i].label=e.target.value; refreshMapping(); };
+  });
 }
 
 function fillColumnSelects(d){
@@ -657,38 +724,34 @@ function fillColumnSelects(d){
   }
   el('selNum').innerHTML=opts.join('');
   el('selName').innerHTML=opts.join('');
-  el('selTotal').innerHTML=opts.join('');
   el('selNum').value=map.num;
   el('selName').value=map.name;
-  el('selTotal').value=map.total;
 }
 
 function refreshMapping(){
   map.num=parseInt(el('selNum').value,10);
   map.name=parseInt(el('selName').value,10);
-  map.total=parseInt(el('selTotal').value,10);
   buildStudents();
   renderPreview();
-  // scale info + warn
+  const checked=sumCols.filter(s=>s.checked).length;
+  el('sumChip').textContent = checked ? `${checked}개 항목 합산` : '선택 없음';
   const totals=students.map(s=>s.total).filter(v=>!isNaN(v));
-  const mn=Math.min(...totals), mx=Math.max(...totals);
-  el('scaleInfo').textContent = totals.length ? `총점 범위: ${mn} ~ ${mx} · 학생 ${students.length}명` : '';
+  const mn=totals.length?Math.min(...totals):0, mx=totals.length?Math.max(...totals):0;
+  el('scaleInfo').textContent = totals.length ? `총점 범위 ${mn} ~ ${mx} · 학생 ${students.length}명` : '';
   let warn='';
-  if(!students.length) warn='학생 데이터를 못 찾았어요. 위에서 번호/이름 열을 직접 골라주세요.';
-  else if(mx<=10) warn='총점이 작네요(10 이하). 합계가 아니라 항목 점수를 잡았을 수 있어요. 총점 열을 확인해 주세요.';
-  else if(mx>100) warn='총점이 100을 넘어요. 등급 경계 점수를 실제 만점 기준에 맞게 바꿔주세요.';
+  if(!checked) warn='합산할 항목을 1개 이상 체크해 주세요. (체크된 점수들을 더한 값이 총점이 됩니다)';
+  else if(!students.length) warn='학생 데이터를 못 찾았어요. 번호/이름 열을 확인해 주세요.';
   el('mapWarn').innerHTML = warn?`<div class="warn">⚠️ ${warn}</div>`:'';
 }
 
 function renderPreview(){
-  const ds=dataRange[0];
-  const detailCols=scoreCols.filter(c=>c!==map.total);
-  const head=['번호','이름',...detailCols.map(c=>buildLabel(aoa,c,ds)),'총점','등급'];
-  el('preview').querySelector('thead').innerHTML='<tr>'+head.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  const labels = students.length ? students[0].detail.map(d=>d.label) : [];
+  const head=['번호','이름',...labels,'총점','등급'];
+  el('preview').querySelector('thead').innerHTML='<tr>'+head.map(h=>`<th>${escapeHtml(h)}</th>`).join('')+'</tr>';
   const rows=students.slice(0,12).map(s=>{
     const t=tierOf(s.total);
-    const dcells=s.detail.map(d=>`<td>${d.val??''}</td>`).join('');
-    return `<tr><td>${s.num}</td><td>${s.name}</td>${dcells}<td><b>${s.total}</b></td><td class="tier" style="color:var(--${t.key}-2,#fff)">${t.label}</td></tr>`;
+    const dcells=s.detail.map(d=>`<td>${d.val}</td>`).join('');
+    return `<tr><td>${s.num}</td><td>${escapeHtml(s.name)}</td>${dcells}<td><b>${s.total}</b></td><td class="tier" style="color:var(--${t.key}-2,#fff)">${t.label}</td></tr>`;
   }).join('');
   el('preview').querySelector('tbody').innerHTML=rows;
 }
@@ -780,14 +843,10 @@ function revealCard(tier){
   const pool=MESSAGES[tier.key];
   el('cMsg').textContent = pool[Math.floor(Math.random()*pool.length)];
 
-  // detail
+  // detail (always visible)
   const box=el('cDetailBox');
-  if(s.detail.length){
-    box.innerHTML=s.detail.map(d=>`<div class="drow"><span>${d.label}</span><span>${d.val??'-'}</span></div>`).join('')
-      +`<div class="drow"><span>총점</span><span>${s.total}</span></div>`;
-    el('cDetail').style.display='block';
-  } else el('cDetail').style.display='none';
-  el('cDetail').open=false;
+  const rows=s.detail.map(d=>`<div class="drow"><span>${escapeHtml(d.label)}</span><span>${d.val}</span></div>`).join('');
+  box.innerHTML=`<div class="dh">세부 점수</div>${rows}<div class="drow total"><span>총점</span><span>${s.total}</span></div>`;
 
   show('screen-card');
 
@@ -905,7 +964,7 @@ el('file').onchange=e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); };
 el('drop').addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) loadFile(f); });
 
 el('selSheet') && (el('selSheet').onchange=e=>loadSheet(parseInt(e.target.value,10)));
-['selNum','selName','selTotal'].forEach(id=>el(id).onchange=refreshMapping);
+['selNum','selName'].forEach(id=>el(id).onchange=refreshMapping);
 ['b1','b2','b3'].forEach(id=>el(id).oninput=()=>{ renderPreview(); });
 
 el('btnBack').onclick=()=>show('screen-upload');
