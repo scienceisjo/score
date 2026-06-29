@@ -71,10 +71,10 @@
     background:linear-gradient(180deg,rgba(4,32,49,.82),rgba(4,32,49,0));
     backdrop-filter:blur(6px);
   }
-  .brand{font-family:"Black Han Sans"; font-size:20px; letter-spacing:.5px;
+  .brand{font-family:"Black Han Sans"; font-size:clamp(20px,2.6vw,33px); letter-spacing:.5px;
     background:linear-gradient(90deg,#fff,#BFefff 55%,#FFD46B);
     -webkit-background-clip:text; background-clip:text; color:transparent; white-space:nowrap}
-  .brand small{font-family:Jua; font-size:11px; color:var(--ink-dim); -webkit-text-fill-color:var(--ink-dim); margin-left:8px}
+  .brand small{font-family:Jua; font-size:clamp(11px,1.4vw,16px); color:var(--ink-dim); -webkit-text-fill-color:var(--ink-dim); margin-left:8px}
   .spacer{flex:1}
   .pill{font-size:12px; color:var(--ink-dim); background:rgba(255,255,255,.08);
     border:1px solid var(--line); padding:5px 10px; border-radius:999px; white-space:nowrap}
@@ -100,14 +100,14 @@
   @keyframes fade{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
 
   /* ---------- upload ---------- */
-  .hero{text-align:center; max-width:600px; margin:0 auto; padding:38px 30px;
-    background:rgba(6,46,67,.55); border:1px solid rgba(255,255,255,.14); border-radius:26px;
+  .hero{text-align:center; max-width:840px; margin:0 auto; padding:clamp(40px,5.5vh,68px) clamp(28px,5vw,60px);
+    background:rgba(6,46,67,.55); border:1px solid rgba(255,255,255,.14); border-radius:30px;
     backdrop-filter:blur(10px); box-shadow:0 30px 80px rgba(0,20,30,.45)}
-  .hero h1{font-family:"Black Han Sans"; font-size:clamp(26px,5.2vw,42px); line-height:1.14; margin:0 0 16px;
+  .hero h1{font-family:"Black Han Sans"; font-size:clamp(32px,6.8vw,68px); line-height:1.12; margin:0 0 clamp(18px,2.6vh,30px);
     background:linear-gradient(90deg,#fff,#FFE7A0 70%,#FFD46B); -webkit-background-clip:text; background-clip:text; color:transparent}
   .hero h1 .accent{background:linear-gradient(90deg,#FFD46B,#FF9f45); -webkit-background-clip:text; background-clip:text; color:transparent}
-  .hero .farewell{font-family:Jua; font-size:clamp(15px,2.3vw,18px); line-height:1.8; color:#dcecf3; margin:0 0 14px; word-break:keep-all}
-  .hero .farewell.strong{color:#fff; font-size:clamp(16px,2.6vw,19.5px); margin:0 0 26px}
+  .hero .farewell{font-family:Jua; font-size:clamp(15.5px,2.4vw,22px); line-height:1.8; color:#dcecf3; margin:0 0 14px; word-break:keep-all}
+  .hero .farewell.strong{color:#fff; font-size:clamp(16.5px,2.7vw,24px); margin:0 0 clamp(24px,3vh,34px)}
   .hero .farewell b{color:var(--sand); font-weight:400}
   .drop{
     border:2px dashed rgba(143,217,236,.5); border-radius:22px;
@@ -520,7 +520,7 @@
    ===================================================================== */
 
 /* ✏️ 배경 사진: 깃허브에 올린 사진 파일명을 적어주세요.
-   - HTML 파일과 같은 폴더에 두면 'bg.png' 처럼 파일명만,
+   - HTML 파일과 같은 폴더에 두면 'bg.jpg' 처럼 파일명만,
    - images 폴더에 두면 'images/사진이름.jpg' 처럼 경로까지.
    - 사진이 없으면 자동으로 별이 빛나는 기본 배경이 나옵니다. */
 const BG_IMAGE = 'bg.png';
