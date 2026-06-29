@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SCORE PACK · 수행평가 카드깡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg-0:#070a14; --bg-1:#0c1124; --bg-2:#131a33;
+    --ink:#eef2fb; --ink-dim:#9aa6c4; --line:rgba(255,255,255,.10);
+    --card-w:300px; --card-h:430px;
+    --gold:#FFD34E; --gold-2:#E8B23A;
+    --silver:#DCE4EF; --silver-2:#A9B6C9;
+    --rookie:#5EE6C8; --rookie-2:#3FB6E6;
+    --legend-glow:#FFE7A0;
+    --accent:#5E9BFF;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Pretendard,system-ui,sans-serif; color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #1b2752 0%, transparent 60%),
+      radial-gradient(900px 600px at 0% 110%, #16234a 0%, transparent 55%),
+      linear-gradient(180deg,var(--bg-1),var(--bg-0));
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; opacity:.34;
+    background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),
+      radial-gradient(1px 1px at 70% 60%,#cfe0ff,transparent),
+      radial-gradient(1px 1px at 40% 80%,#fff,transparent),
+      radial-gradient(1px 1px at 85% 20%,#bcd4ff,transparent),
+      radial-gradient(1.5px 1.5px at 55% 15%,#fff,transparent),
+      radial-gradient(1px 1px at 10% 65%,#e8f0ff,transparent),
+      radial-gradient(1px 1px at 92% 78%,#fff,transparent);
+    background-repeat:repeat; background-size:auto;
+  }
+  #fx{position:fixed; inset:0; pointer-events:none; z-index:60}
+
+  /* ---------- background photo + scrim ---------- */
+  .bg-photo{position:fixed; inset:0; z-index:-2; background-size:cover; background-position:center; background-repeat:no-repeat}
+  .bg-scrim{position:fixed; inset:0; z-index:-1;
+    background:linear-gradient(180deg, rgba(7,10,20,.48) 0%, rgba(7,10,20,.72) 55%, rgba(7,10,20,.90) 100%)}
+
+  /* ---------- top bar ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:30;
+    display:flex; align-items:center; gap:12px; padding:12px 18px;
+    background:linear-gradient(180deg,rgba(7,10,20,.85),rgba(7,10,20,0));
+    backdrop-filter:blur(6px);
+  }
+  .brand{font-family:"Black Han Sans"; font-size:20px; letter-spacing:.5px;
+    background:linear-gradient(90deg,#fff,#bcd4ff 60%,#FFD34E);
+    -webkit-background-clip:text; background-clip:text; color:transparent; white-space:nowrap}
+  .brand small{font-family:Jua; font-size:11px; color:var(--ink-dim); -webkit-text-fill-color:var(--ink-dim); margin-left:8px}
+  .spacer{flex:1}
+  .pill{font-size:12px; color:var(--ink-dim); background:rgba(255,255,255,.05);
+    border:1px solid var(--line); padding:5px 10px; border-radius:999px; white-space:nowrap}
+  .pill b{color:var(--ink)}
+  .btn{font-family:Pretendard; font-weight:700; font-size:13px; color:var(--ink);
+    background:rgba(255,255,255,.06); border:1px solid var(--line); padding:8px 12px;
+    border-radius:10px; cursor:pointer; transition:.15s}
+  .btn:hover{background:rgba(255,255,255,.12)}
+  .btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .btn.primary{background:linear-gradient(90deg,#5E9BFF,#6ad0ff); color:#06122a; border:none;
+    box-shadow:0 8px 24px rgba(94,155,255,.35)}
+  .btn.ghost{background:transparent}
+
+  /* ---------- screens ---------- */
+  main{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:78px 18px 24px}
+  .screen{display:none; width:100%; max-width:980px; animation:fade .35s ease both}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
+
+  /* ---------- upload ---------- */
+  .hero{text-align:center; max-width:600px; margin:0 auto; padding:38px 30px;
+    background:rgba(9,13,26,.46); border:1px solid rgba(255,255,255,.09); border-radius:26px;
+    backdrop-filter:blur(10px); box-shadow:0 30px 80px rgba(0,0,0,.4)}
+  .hero h1{font-family:"Black Han Sans"; font-size:clamp(26px,5.2vw,42px); line-height:1.14; margin:0 0 16px;
+    background:linear-gradient(90deg,#fff,#FFE7A0 70%,#FFD34E); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero h1 .accent{background:linear-gradient(90deg,#FFD34E,#FF9f45); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero .farewell{font-family:Jua; font-size:clamp(15px,2.3vw,18px); line-height:1.8; color:#d8dff0; margin:0 0 14px; word-break:keep-all}
+  .hero .farewell.strong{color:#fff; font-size:clamp(16px,2.6vw,19.5px); margin:0 0 26px}
+  .hero .farewell b{color:var(--gold); font-weight:400}
+  .drop{
+    border:2px dashed rgba(120,150,220,.45); border-radius:22px;
+    background:rgba(20,28,55,.45); padding:40px 24px; cursor:pointer;
+    transition:.18s; position:relative; overflow:hidden;
+  }
+  .drop:hover,.drop.hot{border-color:#6ad0ff; background:rgba(28,40,80,.6); transform:translateY(-2px)}
+  .drop .ic{font-size:46px; margin-bottom:10px}
+  .drop .big{font-family:Jua; font-size:20px}
+  .drop .sub{color:var(--ink-dim); font-size:13px; margin-top:6px}
+  .note{margin-top:18px; font-size:12.5px; color:var(--ink-dim); display:flex; gap:8px; align-items:flex-start; justify-content:center; text-align:left; max-width:560px; margin-left:auto; margin-right:auto}
+  .note .lock{flex:0 0 auto}
+
+  /* ---------- mapping ---------- */
+  .panel{background:rgba(16,23,46,.7); border:1px solid var(--line); border-radius:18px; padding:22px}
+  .panel h2{font-family:Jua; font-size:20px; margin:0 0 4px}
+  .panel .lead{color:var(--ink-dim); font-size:13.5px; margin:0 0 18px}
+  .grid-map{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  .field{background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+  .field label{display:block; font-size:11.5px; color:var(--ink-dim); margin-bottom:6px; font-weight:700; letter-spacing:.3px}
+  select,input[type=number]{width:100%; font-family:Pretendard; font-size:14px; color:var(--ink);
+    background:#0c1430; border:1px solid var(--line); border-radius:9px; padding:9px 10px; appearance:none}
+  select:focus,input:focus{outline:2px solid var(--accent); outline-offset:1px}
+  .rowflex{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-top:16px}
+  .bounds{display:flex; gap:8px; align-items:flex-end}
+  .bounds .field{padding:8px 10px}
+  .bounds input{width:78px}
+  .togline{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-dim); margin-top:14px; user-select:none}
+  .togline input{width:16px; height:16px; accent-color:var(--accent)}
+  .preview-wrap{margin-top:18px; border:1px solid var(--line); border-radius:12px; overflow:auto; max-height:230px}
+  table{border-collapse:collapse; width:100%; font-size:12.5px; min-width:520px}
+  th,td{padding:7px 10px; text-align:left; white-space:nowrap; border-bottom:1px solid rgba(255,255,255,.06)}
+  th{position:sticky; top:0; background:#0d1738; color:var(--ink-dim); font-weight:700; z-index:1}
+  td.tier{font-weight:800}
+  .warn{margin-top:14px; padding:11px 13px; border-radius:11px; font-size:13px;
+    background:rgba(255,140,90,.12); border:1px solid rgba(255,140,90,.3); color:#ffd0b0}
+  .stat-mini{font-size:12px; color:var(--ink-dim); margin-top:8px}
+
+  /* ---------- selection grid ---------- */
+  .sel-head{display:flex; align-items:baseline; gap:12px; margin-bottom:16px; flex-wrap:wrap}
+  .sel-head h2{font-family:Jua; font-size:22px; margin:0}
+  .sel-head .hint{color:var(--ink-dim); font-size:13px}
+  .num-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(66px,1fr)); gap:10px}
+  .num{position:relative; aspect-ratio:1/1; border-radius:14px; cursor:pointer;
+    border:1px solid var(--line); background:linear-gradient(180deg,#1a2552,#121a38);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    transition:.14s; font-family:Pretendard}
+  .num:hover{transform:translateY(-3px); border-color:#6ad0ff; box-shadow:0 10px 22px rgba(0,0,0,.35)}
+  .num:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .num .n{font-family:"Black Han Sans"; font-size:24px; line-height:1}
+  .num .nm{font-size:11px; color:var(--ink-dim); max-width:58px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .num.done{opacity:.45}
+  .num.done::after{content:"✓"; position:absolute; top:5px; right:7px; font-size:13px; color:var(--rookie); font-weight:800}
+
+  /* ---------- confirm sheet ---------- */
+  .confirm{position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:20px;
+    background:rgba(4,7,16,.66); backdrop-filter:blur(4px)}
+  .confirm.on{display:flex; animation:fade .2s ease both}
+  .confirm .box{background:linear-gradient(180deg,#16204a,#0e1530); border:1px solid var(--line);
+    border-radius:20px; padding:26px; text-align:center; max-width:340px; width:100%}
+  .confirm .who{font-family:"Black Han Sans"; font-size:30px; margin:6px 0 2px}
+  .confirm .num-lab{font-family:Jua; color:var(--accent); font-size:15px}
+  .confirm .ask{color:var(--ink-dim); font-size:13.5px; margin:12px 0 20px}
+  .confirm .row{display:flex; gap:10px}
+  .confirm .row .btn{flex:1; padding:13px}
+
+  /* ---------- pack stage ---------- */
+  #screen-pack{display:none}
+  #screen-pack.on{display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh}
+  .stage-name{font-family:Jua; font-size:16px; color:var(--ink-dim); margin-bottom:22px; text-align:center}
+  .stage-name b{color:var(--ink); font-size:20px}
+  .pack{
+    width:230px; height:330px; border-radius:18px; cursor:pointer; position:relative;
+    background:
+      linear-gradient(135deg,#243a8f 0%,#3a1f6e 50%,#7a2b5e 100%);
+    border:2px solid rgba(255,255,255,.25);
+    box-shadow:0 26px 60px rgba(0,0,0,.5), inset 0 0 60px rgba(255,255,255,.08);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    animation:packfloat 3.2s ease-in-out infinite;
+    transition:transform .15s;
+  }
+  .pack:focus-visible{outline:3px solid var(--accent); outline-offset:4px}
+  .pack::before{ /* glare sweep */
+    content:""; position:absolute; top:-60%; left:-30%; width:60%; height:220%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+    transform:rotate(18deg); animation:sweep 2.6s linear infinite;
+  }
+  .pack::after{ /* foil dots */
+    content:""; position:absolute; inset:0; opacity:.35; mix-blend-mode:screen;
+    background-image:radial-gradient(circle at 30% 20%,rgba(255,255,255,.6) 0 1px,transparent 2px),
+      radial-gradient(circle at 70% 60%,rgba(255,255,255,.5) 0 1px,transparent 2px),
+      radial-gradient(circle at 50% 85%,rgba(255,255,255,.5) 0 1px,transparent 2px);
+    background-size:40px 40px;
+  }
+  .pack .logo{font-family:"Black Han Sans"; font-size:30px; text-align:center; line-height:1.05;
+    color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.5); z-index:2; letter-spacing:1px}
+  .pack .logo span{display:block; font-size:13px; color:var(--gold); letter-spacing:3px; margin-top:6px}
+  .tap-hint{margin-top:22px; font-family:Jua; font-size:15px; color:var(--ink); opacity:.9; animation:pulse 1.4s ease-in-out infinite}
+  @keyframes packfloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-12px) rotate(1deg)}}
+  @keyframes sweep{0%{left:-40%}100%{left:130%}}
+  @keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}
+  .pack.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97) both}
+  @keyframes shake{10%,90%{transform:translate(-2px,0) rotate(-3deg)}20%,80%{transform:translate(4px,0) rotate(3deg)}
+    30%,50%,70%{transform:translate(-8px,0) rotate(-5deg)}40%,60%{transform:translate(8px,0) rotate(5deg)}}
+  .pack.burst{animation:burst .45s ease forwards}
+  @keyframes burst{0%{transform:scale(1)}60%{transform:scale(1.18)}100%{transform:scale(2.4); opacity:0}}
+  .flash{position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:55}
+  .flash.go{animation:flashgo .5s ease forwards}
+  @keyframes flashgo{0%{opacity:0}18%{opacity:.95}100%{opacity:0}}
+
+  /* ---------- card reveal ---------- */
+  #screen-card{display:none}
+  #screen-card.on{display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:62vh}
+  .card{
+    width:var(--card-w); height:var(--card-h); border-radius:22px; position:relative; overflow:hidden;
+    transform:perspective(1100px) rotateY(0deg); animation:cardin .7s cubic-bezier(.2,.8,.2,1) both;
+    box-shadow:0 30px 70px rgba(0,0,0,.55);
+  }
+  @keyframes cardin{0%{opacity:0; transform:perspective(1100px) translateY(40px) rotateX(25deg) scale(.85)}
+    100%{opacity:1; transform:perspective(1100px) translateY(0) rotateX(0) scale(1)}}
+  .card .face{position:absolute; inset:0; padding:20px; display:flex; flex-direction:column}
+  .card .holo{position:absolute; inset:0; pointer-events:none; mix-blend-mode:color-dodge; opacity:.0}
+  .card .glare{position:absolute; top:-50%; left:-30%; width:50%; height:200%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent); transform:rotate(18deg);
+    animation:cardglare 3.4s linear infinite; pointer-events:none; opacity:.6}
+  @keyframes cardglare{0%{left:-40%}100%{left:130%}}
+
+  .card .rk{display:flex; align-items:center; justify-content:space-between}
+  .card .rk .badge{font-family:"Black Han Sans"; font-size:22px; letter-spacing:1px}
+  .card .rk .no{font-family:"Black Han Sans"; font-size:18px; background:rgba(0,0,0,.25);
+    padding:3px 10px; border-radius:999px}
+  .card .stars{font-size:22px; letter-spacing:2px; margin:6px 0 0; height:26px}
+  .card .stars i{font-style:normal; display:inline-block; opacity:0; transform:scale(0)}
+  .card .stars i.pop{animation:starpop .3s ease forwards}
+  @keyframes starpop{0%{opacity:0; transform:scale(0) rotate(-40deg)}70%{transform:scale(1.4) rotate(6deg)}100%{opacity:1; transform:scale(1) rotate(0)}}
+  .card .mid{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center}
+  .card .score{font-family:"Black Han Sans"; font-size:96px; line-height:.9; text-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .card .score small{font-size:26px; opacity:.7}
+  .card .score.hidden-num{font-size:54px}
+  .card .name{font-family:"Black Han Sans"; font-size:32px; margin-top:6px}
+  .card .foot{font-family:Jua; font-size:14.5px; line-height:1.45; text-align:center;
+    background:rgba(0,0,0,.22); border-radius:12px; padding:11px 12px; min-height:62px;
+    display:flex; align-items:center; justify-content:center}
+
+  .card[data-tier="legend"]{background:linear-gradient(150deg,#2a1b00,#1a0f2e 55%,#001a22);
+    border:2px solid var(--gold); color:#fff; box-shadow:0 0 0 1px rgba(255,211,78,.4),0 30px 80px rgba(255,180,40,.25)}
+  .card[data-tier="legend"] .holo{opacity:.55;
+    background:conic-gradient(from 0deg,#ff5e7e,#ffd34e,#5ee6c8,#5e9bff,#c77dff,#ff5e7e);
+    animation:holospin 6s linear infinite}
+  @keyframes holospin{to{transform:rotate(360deg) scale(1.6)}}
+  .card[data-tier="legend"] .badge{color:var(--gold)}
+  .card[data-tier="legend"] .stars{color:var(--gold)}
+
+  .card[data-tier="gold"]{background:linear-gradient(155deg,#5a4310,#2a1f06 60%,#3a2c08);
+    border:2px solid var(--gold); color:#fff5dc}
+  .card[data-tier="gold"] .holo{opacity:.25; background:linear-gradient(120deg,transparent,rgba(255,224,138,.7),transparent); animation:sheen 4s linear infinite}
+  .card[data-tier="gold"] .badge{color:var(--gold)}
+  .card[data-tier="gold"] .stars{color:var(--gold)}
+  @keyframes sheen{0%{transform:translateX(-30%)}100%{transform:translateX(30%)}}
+
+  .card[data-tier="silver"]{background:linear-gradient(155deg,#33414f,#1c252f 60%,#2a343f);
+    border:2px solid var(--silver-2); color:#f1f5fa}
+  .card[data-tier="silver"] .holo{opacity:.2; background:linear-gradient(120deg,transparent,rgba(240,246,252,.7),transparent); animation:sheen 4.4s linear infinite}
+  .card[data-tier="silver"] .badge{color:var(--silver)}
+  .card[data-tier="silver"] .stars{color:var(--silver)}
+
+  .card[data-tier="rookie"]{background:linear-gradient(155deg,#063a3c,#04232f 60%,#062a44);
+    border:2px solid var(--rookie); color:#e6fbff}
+  .card[data-tier="rookie"] .holo{opacity:.18; background:linear-gradient(120deg,transparent,rgba(94,230,200,.7),transparent); animation:sheen 4.8s linear infinite}
+  .card[data-tier="rookie"] .badge{color:var(--rookie)}
+  .card[data-tier="rookie"] .stars{color:var(--rookie)}
+
+  .card-actions{display:flex; gap:10px; margin-top:26px; flex-wrap:wrap; justify-content:center}
+  .detail{margin-top:14px; max-width:var(--card-w); width:100%}
+  .detail summary{font-family:Jua; font-size:13px; color:var(--ink-dim); cursor:pointer; text-align:center; list-style:none}
+  .detail summary::-webkit-details-marker{display:none}
+  .detail .dbox{margin-top:10px; background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:12px; padding:12px; font-size:12.5px}
+  .detail .drow{display:flex; justify-content:space-between; padding:4px 2px; border-bottom:1px solid rgba(255,255,255,.06)}
+  .detail .drow:last-child{border:none}
+  .detail .drow span:last-child{font-family:"Black Han Sans"}
+
+  @media (max-width:640px){
+    .grid-map{grid-template-columns:1fr}
+    .brand small{display:none}
+    main{padding-top:70px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001s !important; animation-iteration-count:1 !important}
+    .pack::before,.card .glare,.tap-hint{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-photo"></div>
+<div class="bg-scrim"></div>
+
+<header>
+  <div class="brand">SCORE&nbsp;PACK<small>수행평가 카드깡</small></div>
+  <div class="spacer"></div>
+  <span class="pill" id="counter" hidden>개봉 <b>0</b>/<b>0</b></span>
+  <button class="btn ghost" id="btnReset" hidden>새 파일</button>
+</header>
+
+<main>
+  <!-- 1. UPLOAD -->
+  <section class="screen on" id="screen-upload">
+    <div class="hero">
+      <h1>26년 해누리 2학년 과학!</h1>
+      <p class="farewell">순간순간 신기한 자연현상 보며 감탄했던 순간, 여러분들 웃기려 노력하던 선생님을 흐릿하게라도 기억해주세요!</p>
+      <p class="farewell strong">점수는 점수일 뿐, 일희일비하지 말고 지난날의 나를 <b>토닥여줍시다!</b></p>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="엑셀 파일 업로드">
+        <div class="ic">📦</div>
+        <div class="big">엑셀 파일을 여기에 끌어다 놓기</div>
+        <div class="sub">또는 눌러서 선택 · .xlsx / .xls</div>
+        <input type="file" id="file" accept=".xlsx,.xls,.xlsm" hidden>
+      </div>
+      <div class="note">
+        <span class="lock">🔒</span>
+        <span>업로드한 파일은 이 브라우저 안에서만 열리고 어디에도 저장·전송되지 않아요. 창을 닫으면 데이터도 함께 사라집니다.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. MAPPING -->
+  <section class="screen" id="screen-mapping">
+    <div class="panel">
+      <h2>열 확인하기</h2>
+      <p class="lead">자동으로 찾아봤어요. 혹시 잘못 잡혔으면 골라서 바꿔주세요.</p>
+
+      <div id="sheetPick" class="field" style="margin-bottom:12px; display:none">
+        <label>시트 선택</label>
+        <select id="selSheet"></select>
+      </div>
+
+      <div class="grid-map">
+        <div class="field"><label>번호 열</label><select id="selNum"></select></div>
+        <div class="field"><label>이름 열</label><select id="selName"></select></div>
+        <div class="field"><label>총점 열</label><select id="selTotal"></select></div>
+      </div>
+
+      <div class="rowflex">
+        <div class="bounds">
+          <div class="field"><label>전설 ≥</label><input type="number" id="b1" value="95"></div>
+          <div class="field"><label>골드 ≥</label><input type="number" id="b2" value="85"></div>
+          <div class="field"><label>실버 ≥</label><input type="number" id="b3" value="70"></div>
+        </div>
+        <div class="stat-mini" id="scaleInfo"></div>
+      </div>
+
+      <label class="togline"><input type="checkbox" id="togShowNum" checked> 카드에 총점 숫자 보여주기 (끄면 등급·별·응원문구만)</label>
+
+      <div id="mapWarn"></div>
+
+      <div class="preview-wrap">
+        <table id="preview"><thead></thead><tbody></tbody></table>
+      </div>
+
+      <div class="rowflex" style="justify-content:flex-end; margin-top:18px">
+        <button class="btn ghost" id="btnBack">다시 업로드</button>
+        <button class="btn primary" id="btnStart">시작하기 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. SELECTION -->
+  <section class="screen" id="screen-select">
+    <div class="sel-head">
+      <h2>몇 번?</h2>
+      <span class="hint">자기 번호를 누르면 카드팩이 나와요</span>
+    </div>
+    <div class="num-grid" id="numGrid"></div>
+  </section>
+
+  <!-- 4. PACK -->
+  <section class="screen" id="screen-pack">
+    <div class="stage-name" id="packName"></div>
+    <button class="pack" id="pack" aria-label="카드팩 개봉">
+      <div class="logo">SCORE<br>PACK<span>OPEN ME</span></div>
+    </button>
+    <div class="tap-hint">탭해서 개봉하기!</div>
+  </section>
+
+  <!-- 5. CARD -->
+  <section class="screen" id="screen-card">
+    <div class="card" id="card" data-tier="rookie">
+      <div class="holo"></div>
+      <div class="glare"></div>
+      <div class="face">
+        <div class="rk"><span class="badge" id="cBadge">ROOKIE</span><span class="no" id="cNo">#1</span></div>
+        <div class="stars" id="cStars"></div>
+        <div class="mid">
+          <div class="score" id="cScore">0</div>
+          <div class="name" id="cName">이름</div>
+        </div>
+        <div class="foot" id="cMsg">메시지</div>
+      </div>
+    </div>
+    <details class="detail" id="cDetail">
+      <summary>세부 점수 보기</summary>
+      <div class="dbox" id="cDetailBox"></div>
+    </details>
+    <div class="card-actions">
+      <button class="btn primary" id="btnNext">다음 학생 →</button>
+    </div>
+  </section>
+</main>
+
+<div class="flash" id="flash"></div>
+<canvas id="fx"></canvas>
+
+<!-- confirm sheet -->
+<div class="confirm" id="confirm">
+  <div class="box">
+    <div class="num-lab" id="cfNumLab">3번</div>
+    <div class="who" id="cfName">홍길동</div>
+    <div class="ask">본인이 맞으면 카드를 받아요!</div>
+    <div class="row">
+      <button class="btn ghost" id="cfCancel">아니요</button>
+      <button class="btn primary" id="cfOk">네, 맞아요</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   SCORE PACK — 수행평가 카드깡
+   - 어떤 과목 엑셀이든: 번호→이름→점수항목→총점 구조를 자동 인식
+   - 전부 브라우저 내 처리, 저장 없음
+   ---------------------------------------------------------------------
+   ✏️ 쉽게 바꿀 수 있는 부분:
+     · TIERS 의 cut(경계점수) — 화면에서도 바꿀 수 있음
+     · MESSAGES — 등급별 응원/행운 문구. 자유롭게 추가/수정
+   ===================================================================== */
+
+/* ✏️ 배경 사진: 깃허브에 올린 사진 파일명을 적어주세요.
+   - HTML 파일과 같은 폴더에 두면 'bg.jpg' 처럼 파일명만,
+   - images 폴더에 두면 'images/사진이름.jpg' 처럼 경로까지.
+   - 사진이 없으면 자동으로 별이 빛나는 기본 배경이 나옵니다. */
+const BG_IMAGE = 'bg.jpg';
+
+const TIERS = [
+  { key:'legend', label:'LEGEND', stars:5, cut:95 },
+  { key:'gold',   label:'GOLD',   stars:4, cut:85 },
+  { key:'silver', label:'SILVER', stars:3, cut:70 },
+  { key:'rookie', label:'ROOKIE', stars:2, cut:0  },
+];
+
+const MESSAGES = {
+  legend:[
+    "전설 등급 등장! 너의 노력이 빛나는 순간이야 ✨",
+    "이건 거의 SSR이야. 오늘 하루 좋은 일만 가득하길!",
+    "완벽에 가까운 결과! 정말 자랑스러워.",
+    "별 다섯 개짜리 실력! 이 기세 그대로 쭉 가자.",
+    "행운이 너를 따라다니는 중. 멋지다, 진짜!",
+    "최고 등급 획득! 너의 집중력이 만든 결과야.",
+    "이 카드, 도감에 박제각이다. 정말 잘했어!",
+  ],
+  gold:[
+    "골드 카드 획득! 탄탄한 실력이 느껴져 👏",
+    "조금만 더 가면 전설이야. 충분히 멋졌어!",
+    "꾸준함이 빛나는 점수. 행운이 함께하길!",
+    "안정적인 골드! 다음엔 더 높이 날아보자.",
+    "잘 다듬어진 보석 같은 결과야. 자랑스러워!",
+    "이 정도면 주전 확정. 오늘도 좋은 하루 보내!",
+    "노력의 무게가 그대로 점수에 담겼네. 굿!",
+  ],
+  silver:[
+    "실버 카드 획득! 가능성이 가득한 점수야 ✨",
+    "기본기가 탄탄해. 조금만 더 가면 골드각!",
+    "여기서부터가 성장 구간이야. 응원할게!",
+    "오늘의 행운을 모아 다음 도전으로 가자.",
+    "충분히 잘하고 있어. 너의 속도로 가면 돼.",
+    "한 걸음씩, 분명히 올라가고 있어. 멋져!",
+    "이 카드엔 성장 잠재력이 숨어 있어. 화이팅!",
+  ],
+  rookie:[
+    "루키 카드 등장! 모든 전설은 여기서 시작해 🌱",
+    "끝이 아니라 출발선이야. 다음엔 더 빛날 거야!",
+    "오늘의 도전만으로도 충분히 용감했어. 응원해!",
+    "작은 한 걸음이 큰 성장을 만들어. 같이 가보자.",
+    "행운은 준비된 사람에게 와. 너의 차례가 올 거야.",
+    "포기하지 않은 네가 이미 멋져. 다음을 기대할게!",
+    "성장할 일만 남았다는 뜻! 너를 믿어.",
+  ],
+};
+
+const CONFETTI = {
+  legend:['#FF5E7E','#FFD34E','#5EE6C8','#5E9BFF','#C77DFF','#FF9F45'],
+  gold:['#FFD34E','#FFE08A','#E8B23A','#FFF3C4'],
+  silver:['#EEF3F8','#C7D0DB','#9FB0C3','#FFFFFF'],
+  rookie:['#5EE6C8','#3FB6E6','#5E9BFF','#BFF7EA'],
+};
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- state ---------- */
+let WB=null, SHEETS=[], aoa=[], map={num:0,name:1,total:2}, scoreCols=[], dataRange=[0,0];
+let students=[], opened=new Set(), current=null, busy=false;
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const el=id=>document.getElementById(id);
+function cellAt(a,r,c){ return (a[r]&&a[r][c]!==undefined)?a[r][c]:''; }
+function cellStr(a,r,c){ const v=cellAt(a,r,c); return v===null||v===undefined?'':String(v).trim(); }
+function toInt(v){ if(v===''||v===null||v===undefined)return null; const n=parseInt(String(v).replace(/[^\d-]/g,''),10); return isNaN(n)?null:n; }
+function toNum(v){ if(v===''||v===null||v===undefined)return null; const n=parseFloat(String(v).replace(/[^\d.\-]/g,'')); return isNaN(n)?null:n; }
+function maxCols(a){ let m=0; for(const row of a) if(row&&row.length>m)m=row.length; return m; }
+function colLetter(c){ let s=''; c++; while(c>0){ s=String.fromCharCode(65+(c-1)%26)+s; c=Math.floor((c-1)/26);} return s; }
+const STRUCT_WORDS=['평가영역','평가명','영역','반영비율','반영','비율','만점','배점','득점','점수','구분','순'];
+function buildLabel(a,c,ds){
+  const parts=[];
+  for(let r=0;r<ds;r++){
+    const s=cellStr(a,r,c);
+    if(!s) continue;
+    if(/^\d+(\.\d+)?%?$/.test(s)) continue;
+    if(STRUCT_WORDS.includes(s)) continue;
+    if(!parts.includes(s)) parts.push(s);
+  }
+  let label=parts.join(' ').trim();
+  if(label.length>22) label=label.slice(0,22)+'…';
+  return label || (colLetter(c)+'열');
+}
+
+/* ---------- detection ---------- */
+function detect(a){
+  const cols=maxCols(a), R=a.length;
+  // 1) number column = longest run of increasing small ints
+  let best={col:-1,start:-1,end:-1,len:0};
+  for(let c=0;c<Math.min(cols,20);c++){
+    let r=0;
+    while(r<R){
+      const v0=toInt(cellAt(a,r,c));
+      if(v0!==null && v0>=1 && v0<=80){
+        let start=r, prev=v0, end=r, rr=r+1;
+        while(rr<R){
+          const v=toInt(cellAt(a,rr,c));
+          if(v!==null && v>prev && v<=80 && (v-prev)<=5){ prev=v; end=rr; rr++; }
+          else break;
+        }
+        const len=end-start+1;
+        if(len>best.len) best={col:c,start,end,len};
+        r=Math.max(rr,r+1);
+      } else r++;
+    }
+  }
+  let numCol, ds, de;
+  if(best.len>=3){ numCol=best.col; ds=best.start; de=best.end; }
+  else {
+    // fallback: first numeric-ish row as start
+    numCol=0; ds=0; de=R-1;
+    for(let r=0;r<R;r++){ if(toInt(cellAt(a,r,0))!==null){ ds=r; break; } }
+  }
+
+  // 2) name column = closest text(hangul) column to the right, else left
+  const order=[];
+  for(let c=numCol+1;c<cols;c++) order.push(c);
+  for(let c=numCol-1;c>=0;c--) order.push(c);
+  let nameCol=-1, bestScore=-1;
+  for(const c of order){
+    let hits=0,total=0;
+    for(let r=ds;r<=de;r++){
+      const s=cellStr(a,r,c); if(!s) continue; total++;
+      if(/[가-힣]/.test(s) && !/^\d+(\.\d+)?$/.test(s)) hits++;
+    }
+    if(total===0) continue;
+    const score=hits/total;
+    if(hits>=Math.max(2,total*0.5) && score>bestScore){ bestScore=score; nameCol=c; break; }
+  }
+  if(nameCol===-1) nameCol = numCol+1<cols ? numCol+1 : numCol;
+
+  // 3) numeric columns (candidates for scores + total)
+  const numeric=[];
+  for(let c=0;c<cols;c++){
+    if(c===numCol||c===nameCol) continue;
+    let num=0,total=0;
+    for(let r=ds;r<=de;r++){ const s=cellStr(a,r,c); if(!s) continue; total++; if(toNum(cellAt(a,r,c))!==null) num++; }
+    if(total>0 && num/total>=0.6) numeric.push(c);
+  }
+
+  // 4) total column = label match, else rightmost numeric
+  const priority=['총점','환산점수','총계','총합','합계','계'];
+  let totalCol=-1, bestRank=999;
+  for(const c of numeric){
+    const lab=buildLabel(a,c,ds);
+    for(let i=0;i<priority.length;i++){
+      if(lab.includes(priority[i]) && i<bestRank){ bestRank=i; totalCol=c; }
+    }
+  }
+  if(totalCol===-1) totalCol = numeric.length ? numeric[numeric.length-1] : (nameCol+1<cols?nameCol+1:nameCol);
+
+  return { numCol, nameCol, totalCol, numeric, ds, de };
+}
+
+/* ---------- build student rows from current map ---------- */
+function buildStudents(){
+  const [ds,de]=dataRange;
+  students=[];
+  for(let r=ds;r<=de;r++){
+    const num=toInt(cellAt(aoa,r,map.num));
+    const name=cellStr(aoa,r,map.name);
+    if(num===null && !name) continue;
+    let total=toNum(cellAt(aoa,r,map.total));
+    if(total===null){ // compute from score cols
+      let s=0,any=false; for(const c of scoreCols){ const v=toNum(cellAt(aoa,r,c)); if(v!==null){s+=v;any=true;} }
+      total=any?s:0;
+    }
+    const detail=scoreCols.filter(c=>c!==map.total).map(c=>({label:buildLabel(aoa,c,ds), val:toNum(cellAt(aoa,r,c))}));
+    students.push({ num: num===null? (students.length+1):num, name:name||'-', total, detail });
+  }
+}
+
+function tierOf(total){
+  const b1=toNum(el('b1').value)??95, b2=toNum(el('b2').value)??85, b3=toNum(el('b3').value)??70;
+  const cuts=[b1,b2,b3];
+  for(let i=0;i<3;i++){ if(total>=cuts[i]) return TIERS[i]; }
+  return TIERS[3];
+}
+
+/* ---------- screen switch ---------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  el(id).classList.add('on');
+}
+
+/* ---------- file load ---------- */
+function loadFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      WB=XLSX.read(e.target.result,{type:'array'});
+      SHEETS=WB.SheetNames;
+      el('btnReset').hidden=false;
+      const sp=el('sheetPick');
+      if(SHEETS.length>1){
+        sp.style.display='block';
+        const sel=el('selSheet'); sel.innerHTML='';
+        SHEETS.forEach((n,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=n; sel.appendChild(o); });
+      } else sp.style.display='none';
+      loadSheet(0);
+      show('screen-mapping');
+    }catch(err){
+      alert('파일을 읽지 못했어요. 나이스에서 받은 엑셀(.xlsx)이 맞는지 확인해 주세요.');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function loadSheet(i){
+  const ws=WB.Sheets[SHEETS[i]];
+  aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  const d=detect(aoa);
+  map={num:d.numCol, name:d.nameCol, total:d.totalCol};
+  dataRange=[d.ds,d.de];
+  scoreCols=d.numeric.slice();
+  fillColumnSelects(d);
+  refreshMapping();
+}
+
+function fillColumnSelects(d){
+  const cols=maxCols(aoa);
+  const opts=[];
+  for(let c=0;c<cols;c++){
+    const lab=buildLabel(aoa,c,d.ds);
+    const sample=cellStr(aoa,d.ds,c)||cellStr(aoa,d.ds+1,c)||'';
+    opts.push(`<option value="${c}">${colLetter(c)} · ${lab}${sample?'  (예: '+sample.slice(0,8)+')':''}</option>`);
+  }
+  el('selNum').innerHTML=opts.join('');
+  el('selName').innerHTML=opts.join('');
+  el('selTotal').innerHTML=opts.join('');
+  el('selNum').value=map.num;
+  el('selName').value=map.name;
+  el('selTotal').value=map.total;
+}
+
+function refreshMapping(){
+  map.num=parseInt(el('selNum').value,10);
+  map.name=parseInt(el('selName').value,10);
+  map.total=parseInt(el('selTotal').value,10);
+  buildStudents();
+  renderPreview();
+  // scale info + warn
+  const totals=students.map(s=>s.total).filter(v=>!isNaN(v));
+  const mn=Math.min(...totals), mx=Math.max(...totals);
+  el('scaleInfo').textContent = totals.length ? `총점 범위: ${mn} ~ ${mx} · 학생 ${students.length}명` : '';
+  let warn='';
+  if(!students.length) warn='학생 데이터를 못 찾았어요. 위에서 번호/이름 열을 직접 골라주세요.';
+  else if(mx<=10) warn='총점이 작네요(10 이하). 합계가 아니라 항목 점수를 잡았을 수 있어요. 총점 열을 확인해 주세요.';
+  else if(mx>100) warn='총점이 100을 넘어요. 등급 경계 점수를 실제 만점 기준에 맞게 바꿔주세요.';
+  el('mapWarn').innerHTML = warn?`<div class="warn">⚠️ ${warn}</div>`:'';
+}
+
+function renderPreview(){
+  const ds=dataRange[0];
+  const detailCols=scoreCols.filter(c=>c!==map.total);
+  const head=['번호','이름',...detailCols.map(c=>buildLabel(aoa,c,ds)),'총점','등급'];
+  el('preview').querySelector('thead').innerHTML='<tr>'+head.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  const rows=students.slice(0,12).map(s=>{
+    const t=tierOf(s.total);
+    const dcells=s.detail.map(d=>`<td>${d.val??''}</td>`).join('');
+    return `<tr><td>${s.num}</td><td>${s.name}</td>${dcells}<td><b>${s.total}</b></td><td class="tier" style="color:var(--${t.key}-2,#fff)">${t.label}</td></tr>`;
+  }).join('');
+  el('preview').querySelector('tbody').innerHTML=rows;
+}
+
+/* ---------- selection grid ---------- */
+function renderGrid(){
+  el('counter').hidden=false;
+  updateCounter();
+  const g=el('numGrid'); g.innerHTML='';
+  students.sort((a,b)=>a.num-b.num).forEach(s=>{
+    const b=document.createElement('button');
+    b.className='num'+(opened.has(s.num)?' done':'');
+    b.innerHTML=`<span class="n">${s.num}</span><span class="nm">${s.name}</span>`;
+    b.onclick=()=>askConfirm(s);
+    g.appendChild(b);
+  });
+}
+function updateCounter(){
+  el('counter').innerHTML=`개봉 <b>${opened.size}</b>/<b>${students.length}</b>`;
+}
+
+/* ---------- confirm ---------- */
+function askConfirm(s){
+  current=s;
+  el('cfNumLab').textContent=s.num+'번';
+  el('cfName').textContent=s.name;
+  el('confirm').classList.add('on');
+}
+function closeConfirm(){ el('confirm').classList.remove('on'); }
+
+/* ---------- pack stage ---------- */
+function goPack(){
+  closeConfirm();
+  el('packName').innerHTML=`<b>${current.num}번 ${current.name}</b> 님의 카드팩`;
+  el('pack').classList.remove('shake','burst');
+  el('pack').style.opacity='1';
+  show('screen-pack');
+}
+
+/* ---------- open animation ---------- */
+function openPack(){
+  if(busy) return; busy=true;
+  ensureAudio();
+  const tier=tierOf(current.total);
+  playWhoosh();
+  const pack=el('pack');
+
+  if(REDUCED){
+    playReveal(tier.key);
+    revealCard(tier);
+    busy=false; return;
+  }
+
+  pack.classList.add('shake');
+  const rollDur = tier.key==='legend'?1500:tier.key==='gold'?1100:tier.key==='silver'?850:750;
+  setTimeout(()=>{ playDrum(rollDur, tier.key); }, 450);
+
+  setTimeout(()=>{
+    pack.classList.remove('shake'); pack.classList.add('burst');
+  }, 450+rollDur-250);
+
+  setTimeout(()=>{
+    el('flash').classList.remove('go'); void el('flash').offsetWidth; el('flash').classList.add('go');
+    burstConfetti(tier.key);
+    playReveal(tier.key);
+    revealCard(tier);
+    busy=false;
+  }, 450+rollDur);
+}
+
+function revealCard(tier){
+  const s=current;
+  const card=el('card');
+  card.setAttribute('data-tier',tier.key);
+  el('cBadge').textContent=tier.label;
+  el('cNo').textContent='#'+s.num;
+  el('cName').textContent=s.name;
+
+  const showNum=el('togShowNum').checked;
+  const sc=el('cScore');
+  if(showNum){ sc.classList.remove('hidden-num'); sc.innerHTML=`${Math.round(s.total*10)/10}<small>점</small>`; }
+  else { sc.classList.add('hidden-num'); sc.textContent='✦'; }
+
+  // stars
+  const stars=el('cStars'); stars.innerHTML='';
+  for(let i=0;i<5;i++){ const ic=document.createElement('i'); ic.textContent = i<tier.stars?'★':'☆'; ic.style.opacity = i<tier.stars?'0':'.25'; stars.appendChild(ic); }
+
+  // message
+  const pool=MESSAGES[tier.key];
+  el('cMsg').textContent = pool[Math.floor(Math.random()*pool.length)];
+
+  // detail
+  const box=el('cDetailBox');
+  if(s.detail.length){
+    box.innerHTML=s.detail.map(d=>`<div class="drow"><span>${d.label}</span><span>${d.val??'-'}</span></div>`).join('')
+      +`<div class="drow"><span>총점</span><span>${s.total}</span></div>`;
+    el('cDetail').style.display='block';
+  } else el('cDetail').style.display='none';
+  el('cDetail').open=false;
+
+  show('screen-card');
+
+  // stagger star pop
+  if(!REDUCED){
+    const items=stars.querySelectorAll('i');
+    for(let i=0;i<tier.stars;i++){ setTimeout(()=>{ items[i].classList.add('pop'); ping(660+i*80); }, 380+i*120); }
+  } else {
+    stars.querySelectorAll('i').forEach((it,i)=>{ if(i<tier.stars){it.style.opacity='1';it.style.transform='none';} });
+  }
+
+  opened.add(s.num); updateCounter();
+}
+
+function nextStudent(){ show('screen-select'); renderGrid(); }
+
+/* ---------- confetti (canvas) ---------- */
+const fx=el('fx'); const ctx=fx.getContext('2d'); let parts=[], raf=null;
+function sizeCanvas(){ fx.width=innerWidth*devicePixelRatio; fx.height=innerHeight*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
+sizeCanvas(); addEventListener('resize',sizeCanvas);
+function burstConfetti(tierKey){
+  if(REDUCED) return;
+  const colors=CONFETTI[tierKey];
+  const n = tierKey==='legend'?170:tierKey==='gold'?115:tierKey==='silver'?80:60;
+  const cx=innerWidth/2, cy=innerHeight*0.46;
+  for(let i=0;i<n;i++){
+    const ang=Math.random()*Math.PI*2, sp=4+Math.random()*9;
+    parts.push({ x:cx,y:cy, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp-4,
+      g:0.18+Math.random()*0.12, w:5+Math.random()*7, h:8+Math.random()*9,
+      rot:Math.random()*6.28, vr:(Math.random()-.5)*0.4, life:1,
+      col:colors[i%colors.length], star: tierKey==='legend' && Math.random()<0.25 });
+  }
+  if(!raf) raf=requestAnimationFrame(tick);
+}
+function tick(){
+  ctx.clearRect(0,0,fx.width,fx.height);
+  parts=parts.filter(p=>p.life>0);
+  for(const p of parts){
+    p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life-=0.012;
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.col;
+    if(p.star){ drawStar(0,0,5,p.w,p.w/2); }
+    else ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+    ctx.restore();
+  }
+  if(parts.length) raf=requestAnimationFrame(tick); else { raf=null; ctx.clearRect(0,0,fx.width,fx.height); }
+}
+function drawStar(cx,cy,spikes,outer,inner){
+  let rot=Math.PI/2*3, x=cx,y=cy, step=Math.PI/spikes;
+  ctx.beginPath(); ctx.moveTo(cx,cy-outer);
+  for(let i=0;i<spikes;i++){
+    x=cx+Math.cos(rot)*outer; y=cy+Math.sin(rot)*outer; ctx.lineTo(x,y); rot+=step;
+    x=cx+Math.cos(rot)*inner; y=cy+Math.sin(rot)*inner; ctx.lineTo(x,y); rot+=step;
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+/* ---------- audio (procedural) ---------- */
+let AC=null;
+function ensureAudio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC&&AC.state==='suspended') AC.resume(); }
+function note(freq,start,dur,{type='sine',gain=0.2,attack=0.01,release=0.12}={}){
+  if(!AC) return;
+  const t0=AC.currentTime+start;
+  const o=AC.createOscillator(), g=AC.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(gain,t0+attack);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0+dur+release);
+}
+function ping(freq){ note(freq,0,0.18,{type:'triangle',gain:0.12}); }
+function playWhoosh(){
+  if(!AC) return;
+  const t0=AC.currentTime;
+  const buf=AC.createBuffer(1,AC.sampleRate*0.4,AC.sampleRate);
+  const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+  const src=AC.createBufferSource(); src.buffer=buf;
+  const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.setValueAtTime(400,t0); bp.frequency.exponentialRampToValueAtTime(3500,t0+0.35); bp.Q.value=0.8;
+  const g=AC.createGain(); g.gain.setValueAtTime(0.0001,t0); g.gain.linearRampToValueAtTime(0.18,t0+0.05); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.4);
+  src.connect(bp).connect(g).connect(AC.destination); src.start(t0);
+}
+function playDrum(durMs,tierKey){
+  if(!AC) return;
+  const dur=durMs/1000, t0=AC.currentTime;
+  let t=0, interval=0.13;
+  while(t<dur){
+    const start=t;
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(150,t0+start); o.frequency.exponentialRampToValueAtTime(70,t0+start+0.08);
+    const vol=0.08+0.14*(t/dur);
+    g.gain.setValueAtTime(vol,t0+start); g.gain.exponentialRampToValueAtTime(0.0001,t0+start+0.1);
+    o.connect(g).connect(AC.destination); o.start(t0+start); o.stop(t0+start+0.12);
+    interval=Math.max(0.045, interval*0.93); t+=interval;
+  }
+}
+function playReveal(tierKey){
+  if(!AC) return;
+  const seqs={
+    legend:[[523,0,.5,.22],[659,.08,.5,.22],[784,.16,.5,.22],[1047,.26,.7,.26],[1319,.4,.5,.2],[1568,.5,.6,.18]],
+    gold:[[523,0,.4,.2],[659,.09,.4,.2],[784,.18,.55,.22]],
+    silver:[[587,0,.35,.18],[784,.12,.5,.2]],
+    rookie:[[523,0,.45,.16],[659,.06,.55,.14]],
+  };
+  const seq=seqs[tierKey]||seqs.rookie;
+  seq.forEach(([f,s,d,g])=>note(f,s,d,{type:'triangle',gain:g,attack:0.01}));
+  if(tierKey==='legend'){ // sparkle tail
+    for(let i=0;i<6;i++) note(1568+i*220,0.6+i*0.06,0.25,{type:'sine',gain:0.08});
+  }
+}
+
+/* ---------- events ---------- */
+el('drop').onclick=()=>el('file').click();
+el('drop').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el('file').click(); } };
+el('file').onchange=e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); };
+['dragenter','dragover'].forEach(ev=>el('drop').addEventListener(ev,e=>{e.preventDefault(); el('drop').classList.add('hot');}));
+['dragleave','drop'].forEach(ev=>el('drop').addEventListener(ev,e=>{e.preventDefault(); el('drop').classList.remove('hot');}));
+el('drop').addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) loadFile(f); });
+
+el('selSheet') && (el('selSheet').onchange=e=>loadSheet(parseInt(e.target.value,10)));
+['selNum','selName','selTotal'].forEach(id=>el(id).onchange=refreshMapping);
+['b1','b2','b3'].forEach(id=>el(id).oninput=()=>{ renderPreview(); });
+
+el('btnBack').onclick=()=>show('screen-upload');
+el('btnStart').onclick=()=>{ if(!students.length){ alert('학생 데이터를 찾지 못했어요. 번호/이름 열을 확인해 주세요.'); return; } opened=new Set(); renderGrid(); show('screen-select'); };
+el('btnReset').onclick=()=>{ WB=null; students=[]; opened=new Set(); el('counter').hidden=true; el('file').value=''; show('screen-upload'); };
+
+el('cfCancel').onclick=closeConfirm;
+el('cfOk').onclick=goPack;
+el('confirm').addEventListener('click',e=>{ if(e.target===el('confirm')) closeConfirm(); });
+
+el('pack').onclick=openPack;
+el('btnNext').onclick=nextStudent;
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeConfirm(); } });
+
+/* apply background photo (if missing, the gradient/starfield shows instead) */
+(function(){
+  if(!BG_IMAGE) return;
+  const layer=document.querySelector('.bg-photo');
+  const probe=new Image();
+  probe.onload=()=>{ layer.style.backgroundImage="url('"+BG_IMAGE+"')"; };
+  probe.onerror=()=>{ /* keep default background */ };
+  probe.src=BG_IMAGE;
+})();
+</script>
+</body>
+</html>
